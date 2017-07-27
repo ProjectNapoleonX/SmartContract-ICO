@@ -156,7 +156,7 @@ contract Crowdsale is SafeMath {
             msg.sender.transfer(excessAmount);
         }
 
-        tokenAmount = tokenAmount * discountInPercent() / 100;
+        tokenAmount = tokenAmount * (1 + discountInPercent() / 100);
 
         // Transfer the sum of tokens tokenAmount to the msg.sender
         assert(napoleonXToken.transfer(msg.sender, tokenAmount));
