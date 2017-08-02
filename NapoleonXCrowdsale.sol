@@ -2,12 +2,14 @@ pragma solidity ^0.4.0;
 
 import "./SafeMath.sol";
 import "./NapoleonXToken.sol";
+import "./MultiSigWallet.sol";
+import "./ENS.sol";
 
 /// @title Crowdsale Contract
 /// @author NapoleonX Team <contact@napoleonx.ai>
 /// @notice This follows Condition-Orientated Programming as outlined here:
 /// @notice   https://medium.com/@gavofyork/condition-orientated-programming-969f6ba0161a#.saav3bvva
-contract Crowdsale is SafeMath {
+contract NapoleonXCrowdsale is SafeMath {
 
     /* the number of tokens already sold through this contract*/
     uint public tokensSold = 0;
@@ -33,8 +35,9 @@ contract Crowdsale is SafeMath {
     uint public constant MIN_OWNABLE_TOKEN_FRACTION_NUMERATOR = 1;
     uint public constant MIN_OWNABLE_TOKEN_FRACTION_DENOMINATOR = 10;
 
-    /* All deposited ETH will be instantly forwarded to this address. */
-    address public napoleonX;
+    /* All deposited ETH will be ultimately forwarded to this multisignature wallet */
+    MultiSigWallet public napoleonXMultiSigWallet;
+    address napoleonXCrowdSaleModerator;
 
     /* Contribution start time in seconds */
     uint public startTime;
@@ -44,18 +47,37 @@ contract Crowdsale is SafeMath {
     NapoleonXToken public napoleonXToken; // Contract of the ERC20 compliant NapoleonX token
 
     // Fields that can be changed by functions
-    bool public halted; // The napoleonX address can set this to true to halt the contribution due to an emergency
+    bool public halted; // The napoleonX moderator can set this to true to halt the contribution due to an emergency
 
     /** How much ETH each address has invested to this crowdsale */
     mapping (address => uint256) public investedAmountOf;
 
+
+    ENS ens;
+
     // EVENTS
     event Refund(address investor, uint weiAmount);
 
+    /// Pre: All fields, except { napoleonX, startTime } are valid
+    /// Post: All fields, including { napoleonX, startTime } are valid
+    function NapoleonXCrowdsale(address crowdSaleModerator, address[] multiSigOwners, uint required, uint setStartTime, address ensAddress) {
+        // rajouter un check que le crowdSaleModerator resolves to napoleonx.eth
+        napoleonXCrowdSaleModerator = crowdSaleModerator;
+        startTime = setStartTime;
+        endTime = startTime + MAX_CONTRIBUTION_DURATION;
+        napoleonXToken = new NapoleonXToken(); // Create NapoleonX Token Contract
+        napoleonXMultiSigWallet = new MultiSigWallet(multiSigOwners,required);
+        ens = ENS(ensAddress);
+        var resolver = ens.resolver("namehash(napoleonx.eth)");
+        if(!(crowdSaleModerator == resolver.addr("namehash(napoleonx.eth)"))){
+            throw;
+        }
+    }
+
     // MODIFIERS
 
-    modifier only_napoleonX {
-        require(msg.sender == napoleonX);
+    modifier only_napoleonXModerator {
+        require(msg.sender == napoleonXCrowdSaleModerator);
         _;
     }
 
@@ -113,14 +135,6 @@ contract Crowdsale is SafeMath {
         return discountPercent;
     }
 
-    /// Pre: All fields, except { napoleonX, startTime } are valid
-    /// Post: All fields, including { napoleonX, startTime } are valid
-    function Crowdsale(address setNapoleonX, uint setStartTime) {
-        napoleonX = setNapoleonX;
-        startTime = setStartTime;
-        endTime = startTime + MAX_CONTRIBUTION_DURATION;
-        napoleonXToken = new NapoleonXToken(); // Create NapoleonX Token Contract
-    }
 
     // NON-CONSTANT METHODS
 
@@ -156,7 +170,7 @@ contract Crowdsale is SafeMath {
             msg.sender.transfer(excessAmount);
         }
 
-        tokenAmount = tokenAmount * (1 + discountInPercent() / 100);
+        tokenAmount = tokenAmount * discountInPercent() / 100;
 
         // Transfer the sum of tokens tokenAmount to the msg.sender
         assert(napoleonXToken.transfer(msg.sender, tokenAmount));
@@ -185,19 +199,19 @@ contract Crowdsale is SafeMath {
         }
 
         if (fundingGoalReached) {
-            selfdestruct(napoleonX);
+            selfdestruct(napoleonXMultiSigWallet);
         }
     }
 
     /// Pre: Emergency situation that requires contribution period to stop.
     /// Post: Contributing not possible anymore.
-    function halt() only_napoleonX { halted = true; }
+    function halt() only_napoleonXModerator { halted = true; }
 
     /// Pre: Emergency situation resolved.
     /// Post: Contributing becomes possible again withing the outlined restrictions.
-    function unhalt() only_napoleonX { halted = false; }
+    function unhalt() only_napoleonXModerator { halted = false; }
 
     /// Pre: Restricted to napoleonX.
     /// Post: New address set. To halt contribution and/or change minter in NapoleonXToken contract.
-    function changeNapoleonXAddress(address newAddress) only_napoleonX { napoleonX = newAddress; }
+    function changeNapoleonXAddress(address newAddress) only_napoleonXModerator { napoleonXCrowdSaleModerator = newAddress; }
 }
