@@ -3,7 +3,7 @@ pragma solidity ^0.4.0;
 import "./SafeMath.sol";
 import "./NapoleonXToken.sol";
 import "./MultiSigWallet.sol";
-import "./ENS.sol";
+
 
 /// @title Crowdsale Contract
 /// @author NapoleonX Team <contact@napoleonx.ai>
@@ -30,21 +30,21 @@ contract NapoleonXCrowdsale is SafeMath {
     uint public constant MAX_CONTRIBUTION_DURATION = 4 weeks;
 
     // Price of a NPX Token (in Ether)
-    uint public constant ONE_NPX_TOKEN_PRICE = 5805 * 1 ether / 1000;
+    uint public constant ONE_NPX_TOKEN_PRICE = 1 ether;
     // Nevertheless, for the ICO, a minimal amount of 0.1 NPX is required per subscriber.
     uint public constant MIN_OWNABLE_TOKEN_FRACTION_NUMERATOR = 1;
     uint public constant MIN_OWNABLE_TOKEN_FRACTION_DENOMINATOR = 10;
 
     /* All deposited ETH will be ultimately forwarded to this multisignature wallet */
-    MultiSigWallet public napoleonXMultiSigWallet;
-    address napoleonXCrowdSaleModerator;
+    address napoleonXMultiSigWallet;
+    address ;
+    NapoleonXToken public napoleonXToken; // Contract of the ERC20 compliant NapoleonX token
+    NapoleonXPrivatesale napoleonXPrivatesale;
 
     /* Contribution start time in seconds */
     uint public startTime;
     /* Contribution end time in seconds */
     uint public endTime;
-
-    NapoleonXToken public napoleonXToken; // Contract of the ERC20 compliant NapoleonX token
 
     // Fields that can be changed by functions
     bool public halted; // The napoleonX moderator can set this to true to halt the contribution due to an emergency
@@ -57,20 +57,25 @@ contract NapoleonXCrowdsale is SafeMath {
 
     /// Pre: All fields, except { napoleonX, startTime } are valid
     /// Post: All fields, including { napoleonX, startTime } are valid
-    function NapoleonXCrowdsale(address crowdSaleModeratorAddress, address napoleonXTokenAddress,  address napoleonXMultiSigAddress, uint setStartTime) {
+    /* important : after deploying, set crowdsale.napoleonx.eth address to resolve to the deployed contract address */
+    /* feed the constructor with already deployed NapoleonX token address, NapoleonX multisig address, NapoleonX greenlist address */
+    function NapoleonXCrowdsale(address napoleonXTokenAddress, address napoleonXMultiSigWalletAddress, uint setStartTime, address greenlistAddress) {
+        // Crowd sale state variables
         // crowdSaleModerator is the address that napoleonx.eth resolves to
-        napoleonXCrowdSaleModerator = crowdSaleModeratorAddress;
+        napoleonXCrowdsaleModerator = msg.sender;
+        // cast to NapoleonX Token Contract the already deployed NapoleonX token
+        napoleonXToken =  NapoleonXToken(napoleonXTokenAddress);
+        // cast to NapoleonX MultiSig Contract the already deployed NapoleonX token
+        napoleonXMultiSigWallet =  napoleonXMultiSigWalletAddress;
         startTime = setStartTime;
         endTime = startTime + MAX_CONTRIBUTION_DURATION;
-        // cast to NapoleonX Token Contract
-        napoleonXToken =  NapoleonXToken(napoleonXTokenAddress);
-        napoleonXMultiSigWallet =  MultiSigWallet(napoleonXMultiSigAddress);
+        // Private sale contract
+        napoleonXPrivatesale = new NapoleonXPrivatesale(this,greenlistAddress,napoleonXMultiSigWalletAddress,setStartTime);
     }
 
     // MODIFIERS
-
     modifier only_napoleonXModerator {
-        require(msg.sender == napoleonXCrowdSaleModerator);
+        require(msg.sender == napoleonXCrowdsaleModerator);
         _;
     }
 
@@ -163,7 +168,7 @@ contract NapoleonXCrowdsale is SafeMath {
             msg.sender.transfer(excessAmount);
         }
 
-        tokenAmount = tokenAmount * discountInPercent() / 100;
+        tokenAmount = tokenAmount * (100 + discountInPercent()) / 100;
 
         // Transfer the sum of tokens tokenAmount to the msg.sender
         assert(napoleonXToken.transfer(msg.sender, tokenAmount));
@@ -206,5 +211,5 @@ contract NapoleonXCrowdsale is SafeMath {
 
     /// Pre: Restricted to napoleonX.
     /// Post: New address set. To halt contribution and/or change minter in NapoleonXToken contract.
-    function changeNapoleonXAddress(address newAddress) only_napoleonXModerator { napoleonXCrowdSaleModerator = newAddress; }
+    function changeNapoleonXAddress(address newAddress) only_napoleonXModerator { napoleonXCrowdsaleModerator = newAddress; }
 }
