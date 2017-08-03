@@ -52,26 +52,19 @@ contract NapoleonXCrowdsale is SafeMath {
     /** How much ETH each address has invested to this crowdsale */
     mapping (address => uint256) public investedAmountOf;
 
-
-    ENS ens;
-
     // EVENTS
     event Refund(address investor, uint weiAmount);
 
     /// Pre: All fields, except { napoleonX, startTime } are valid
     /// Post: All fields, including { napoleonX, startTime } are valid
-    function NapoleonXCrowdsale(address crowdSaleModerator, address[] multiSigOwners, uint required, uint setStartTime, address ensAddress) {
-        // rajouter un check que le crowdSaleModerator resolves to napoleonx.eth
-        napoleonXCrowdSaleModerator = crowdSaleModerator;
+    function NapoleonXCrowdsale(address crowdSaleModeratorAddress, address napoleonXTokenAddress,  address napoleonXMultiSigAddress, uint setStartTime) {
+        // crowdSaleModerator is the address that napoleonx.eth resolves to
+        napoleonXCrowdSaleModerator = crowdSaleModeratorAddress;
         startTime = setStartTime;
         endTime = startTime + MAX_CONTRIBUTION_DURATION;
-        napoleonXToken = new NapoleonXToken(); // Create NapoleonX Token Contract
-        napoleonXMultiSigWallet = new MultiSigWallet(multiSigOwners,required);
-        ens = ENS(ensAddress);
-        var resolver = ens.resolver("namehash(napoleonx.eth)");
-        if(!(crowdSaleModerator == resolver.addr("namehash(napoleonx.eth)"))){
-            throw;
-        }
+        // cast to NapoleonX Token Contract
+        napoleonXToken =  NapoleonXToken(napoleonXTokenAddress);
+        napoleonXMultiSigWallet =  MultiSigWallet(napoleonXMultiSigAddress);
     }
 
     // MODIFIERS
