@@ -122,6 +122,7 @@ contract NapoleonXCrowdsale is SafeMath {
         }
         // systematic 20 percent discount for private sale commitment
         tokenAmount = tokenAmount * (100 + 20) / 100;
+        // @todo : check green list committed amount
 
         // Transfer the sum of tokens tokenAmount to the msg.sender
         assert(napoleonXToken.transfer(msg.sender, tokenAmount));
