@@ -73,3 +73,25 @@ contract NapoleonXCrowdsale is SafeMath {
         require(msg.sender == napoleonXCrowdsaleContract);
         _;
     }
+
+
+    function getWeiRaised() constant public {
+      return weiRaised;
+    }
+
+    function transferAllFunds() only_napoleonXCrowdsale {
+        selfdestruct(napoleonXMultiSigWallet);
+    }
+
+    function redeemFund(address owner) only_napoleonXCrowdsale {
+      uint amount = investedAmountOf[owner];
+      investedAmountOf[msg.sender] = 0;
+      if (amount > 0) {
+        if (owner.send(amount)) {
+            Refund(owner, amount);
+        }
+        else {
+            investedAmountOf[owner] = amount;
+        }
+      }
+    }

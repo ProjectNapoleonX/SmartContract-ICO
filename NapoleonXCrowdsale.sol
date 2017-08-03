@@ -182,7 +182,7 @@ contract NapoleonXCrowdsale is SafeMath {
     }
 
     function safeWithdrawal() is_not_earlier_than(endTime) {
-        bool fundingGoalReached = weiRaised >= ETHER_MIN_CAP;
+        bool fundingGoalReached = safeAdd(weiRaised,napoleonXPrivatesale.getWeiRaised()) >= ETHER_MIN_CAP;
         if (!fundingGoalReached) {
             uint amount = investedAmountOf[msg.sender];
             investedAmountOf[msg.sender] = 0;
@@ -193,11 +193,13 @@ contract NapoleonXCrowdsale is SafeMath {
                 else {
                     investedAmountOf[msg.sender] = amount;
                 }
+                napoleonXPrivatesale.redeemFund(msg.sender);
             }
         }
 
         if (fundingGoalReached) {
             selfdestruct(napoleonXMultiSigWallet);
+            napoleonXPrivatesale.transferAllFunds();
         }
     }
 
