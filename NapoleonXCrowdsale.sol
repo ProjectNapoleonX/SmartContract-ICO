@@ -112,9 +112,7 @@ contract NapoleonXCrowdsale is SafeMath {
         uint multiplier = 10 ** napoleonXToken.decimals();
         return amountInWei * multiplier / ONE_NPX_TOKEN_PRICE;
     }
-
     // CONSTANT METHODS
-
     /// Pre: startTime, endTime specified in constructor,
     /// Post: Discount in percent for early buyers
     function discountInPercent() constant returns (uint) {
@@ -133,9 +131,7 @@ contract NapoleonXCrowdsale is SafeMath {
         return discountPercent;
     }
 
-
     // NON-CONSTANT METHODS
-
     /**
      * Make an investment.
      *

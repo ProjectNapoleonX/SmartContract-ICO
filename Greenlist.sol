@@ -3,7 +3,7 @@ pragma solidity ^0.4.11;
 import "./SafeMath.sol";
 
 contract Greenlist {
-    /* Define greelist moderator of the type address */
+    /* Define greenlist moderator of the type address */
     address moderator;
     /* Map of the private sell committers */
     mapping (address => uint256) commitments;

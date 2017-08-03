@@ -79,6 +79,65 @@ contract NapoleonXCrowdsale is SafeMath {
       return weiRaised;
     }
 
+    /**
+       * Calculate the amount of token units that can be bought.
+       *
+       */
+    function calculateTokenAmount(uint amountInWei) public constant returns (uint) {
+        uint multiplier = 10 ** napoleonXToken.decimals();
+        return amountInWei * multiplier / ONE_NPX_TOKEN_PRICE;
+    }
+
+
+    /**
+     * Make an investment.
+     *
+     * Crowdsale must be running for one to invest.
+     * We must have not pressed the emergency brake.
+     * Ether cap is not reached
+     *
+     */
+    function()
+    payable
+    is_not_earlier_than(startTime)
+    is_earlier_than(endTime)
+    is_not_halted
+    ether_cap_not_reached
+    {
+        uint amountSentInWei = msg.value;
+        uint tokenAmount = calculateTokenAmount(amountSentInWei);
+        assert(tokenAmount > 0);
+
+        // Check that the minimum ownable token amount is reached
+        if(investedAmountOf[msg.sender] == 0) {
+            assert(tokenAmount >= (10 ** napoleonXToken.decimals() * MIN_OWNABLE_TOKEN_FRACTION_NUMERATOR / MIN_OWNABLE_TOKEN_FRACTION_DENOMINATOR));
+        }
+
+        uint tokensExactPrice = tokenAmount * ONE_NPX_TOKEN_PRICE / 10 ** napoleonXToken.decimals();
+        uint excessAmount = amountSentInWei - tokensExactPrice;
+        uint purchaseAmount = amountSentInWei - excessAmount;
+        // Return any excess msg.value
+        if (excessAmount > 0) {
+            msg.sender.transfer(excessAmount);
+        }
+        // systematic 20 percent discount for private sale commitment
+        tokenAmount = tokenAmount * (100 + 20) / 100;
+
+        // Transfer the sum of tokens tokenAmount to the msg.sender
+        assert(napoleonXToken.transfer(msg.sender, tokenAmount));
+
+        // Update investor
+        investedAmountOf[msg.sender] = safeAdd(investedAmountOf[msg.sender], amountSentInWei);
+
+        // Update totals
+        weiRaised = safeAdd(weiRaised, amountSentInWei);
+        tokensSold = safeAdd(tokensSold, tokenAmount);
+    }
+
+
+
+
+
     function transferAllFunds() only_napoleonXCrowdsale {
         selfdestruct(napoleonXMultiSigWallet);
     }
