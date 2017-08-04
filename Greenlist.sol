@@ -2,7 +2,7 @@ pragma solidity ^0.4.11;
 
 import "./SafeMath.sol";
 
-contract Greenlist {
+contract Greenlist is SafeMath {
     /* Define greenlist moderator of the type address */
     address moderator;
     /* Map of the private sell committers */

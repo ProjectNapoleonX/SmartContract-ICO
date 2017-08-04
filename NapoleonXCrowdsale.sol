@@ -3,7 +3,7 @@ pragma solidity ^0.4.0;
 import "./SafeMath.sol";
 import "./NapoleonXToken.sol";
 import "./MultiSigWallet.sol";
-
+import "./NapoleonXPrivatesale.sol";
 
 /// @title Crowdsale Contract
 /// @author NapoleonX Team <contact@napoleonx.ai>
@@ -37,7 +37,7 @@ contract NapoleonXCrowdsale is SafeMath {
 
     /* All deposited ETH will be ultimately forwarded to this multisignature wallet */
     address napoleonXMultiSigWallet;
-    address ;
+    address napoleonXCrowdsaleModerator;
     NapoleonXToken public napoleonXToken; // Contract of the ERC20 compliant NapoleonX token
     NapoleonXPrivatesale napoleonXPrivatesale;
 
@@ -70,7 +70,7 @@ contract NapoleonXCrowdsale is SafeMath {
         startTime = setStartTime;
         endTime = startTime + MAX_CONTRIBUTION_DURATION;
         // Private sale contract
-        napoleonXPrivatesale = new NapoleonXPrivatesale(this,greenlistAddress,napoleonXMultiSigWalletAddress,setStartTime);
+        napoleonXPrivatesale = new NapoleonXPrivatesale(this,greenlistAddress,napoleonXMultiSigWalletAddress,napoleonXTokenAddress,setStartTime);
     }
 
     // MODIFIERS

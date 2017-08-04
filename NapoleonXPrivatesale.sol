@@ -3,13 +3,14 @@ pragma solidity ^0.4.0;
 import "./SafeMath.sol";
 import "./NapoleonXToken.sol";
 import "./MultiSigWallet.sol";
+import "./Greenlist.sol";
 
 
 /// @title Crowdsale Contract
 /// @author NapoleonX Team <contact@napoleonx.ai>
 /// @notice This follows Condition-Orientated Programming as outlined here:
 /// @notice   https://medium.com/@gavofyork/condition-orientated-programming-969f6ba0161a#.saav3bvva
-contract NapoleonXCrowdsale is SafeMath {
+contract NapoleonXPrivatesale is SafeMath {
 
     /* the number of tokens already sold through this contract*/
     uint public tokensSold = 0;
@@ -27,7 +28,7 @@ contract NapoleonXCrowdsale is SafeMath {
     uint public constant ETHER_MAX_CAP = 250000 ether;
 
     // Max amount in seconds of contribution period
-    uint public constant MAX_PRIVATE_SALE_CONTRIBUTION_DURATION = 1 week;
+    uint public constant MAX_PRIVATE_SALE_CONTRIBUTION_DURATION = 1 weeks;
 
     // Price of a NPX Token (in Ether)
     uint public constant ONE_NPX_TOKEN_PRICE = 1 ether;
@@ -57,7 +58,7 @@ contract NapoleonXCrowdsale is SafeMath {
     /// Pre: All fields, except { napoleonX, startTime } are valid
     /// Post: All fields, including { napoleonX, startTime } are valid
     /* important : after deploying, set crowdsale.napoleonx.eth address to resolve to the deployed contract address */
-    function NapoleonXPrivatesale(address napoleonXCrowdsaleContractAddress, address greenlistAddress, address napoleonXMultiSigWalletAddress, uint setStartTime) {
+    function NapoleonXPrivatesale(address napoleonXCrowdsaleContractAddress, address greenlistAddress, address napoleonXMultiSigWalletAddress,address napoleonXTokenAddress, uint setStartTime) {
         napoleonXCrowdsaleContract = napoleonXCrowdsaleContractAddress;
         napoleonXGreenlist = Greenlist(greenlistAddress);
         // cast to NapoleonX Token Contract the already deployed NapoleonX token
@@ -74,8 +75,33 @@ contract NapoleonXCrowdsale is SafeMath {
         _;
     }
 
+    modifier is_not_halted {
+        require(!halted);
+        _;
+    }
 
-    function getWeiRaised() constant public {
+    modifier ether_cap_not_reached {
+        require(safeAdd(weiRaised, msg.value) <= ETHER_MAX_CAP);
+        _;
+    }
+
+    modifier ether_min_cap_not_reached {
+        require(weiRaised < ETHER_MIN_CAP);
+        _;
+    }
+
+    modifier is_not_earlier_than(uint x) {
+        require(now >= x);
+        _;
+    }
+
+    modifier is_earlier_than(uint x) {
+        require(now < x);
+        _;
+    }
+
+
+    function getWeiRaised() constant public returns (uint) {
       return weiRaised;
     }
 
@@ -155,3 +181,4 @@ contract NapoleonXCrowdsale is SafeMath {
         }
       }
     }
+}
