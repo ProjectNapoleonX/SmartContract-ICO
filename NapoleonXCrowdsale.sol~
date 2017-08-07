@@ -170,10 +170,6 @@ contract NapoleonXCrowdsale is StandardToken, SafeMath, NapoleonXPresale {
     uint public constant ETHER_MAX_CAP = 250000 ether;
     // Max amount in seconds of contribution period
     uint public constant MAX_CONTRIBUTION_DURATION = 4 weeks;
-    // Max amount in seconds of contribution period
-    uint public constant MAX_GREENLIST_CONTRIBUTION_DURATION = 4 weeks;
-    
-    
     // Price of a NPX Token (in Ether)
     uint public constant ONE_NPX_TOKEN_PRICE = 1 ether;
     // Nevertheless, for the ICO, a minimal amount of 0.1 NPX is required per subscriber.
@@ -189,28 +185,14 @@ contract NapoleonXCrowdsale is StandardToken, SafeMath, NapoleonXPresale {
     address napoleonXMultiSigWallet;
     /* this napoleonXFounder address is where napoleonx.eth resolves to */
     address napoleonXFounder;
-    /* bounty program address hardcoded */
-    address bountyUser1 = 0x6551f97F7d133083b11c0350C5FA83eefEE8000d;
-    address bountyUser2 = 0x6551f97F7d133083b11c0350C5FA83eefEE8000d;
-    address bountyUser3 = 0x6551f97F7d133083b11c0350C5FA83eefEE8000d;
-    address bountyUser4 = 0x6551f97F7d133083b11c0350C5FA83eefEE8000d;
 
     /* Contribution start/end time in seconds */
     uint public startTime;
     uint public endTime;
-    uint public presaleEndTime;
-    uint public transferLockup = 8 weeks; //tokens will be locked for two months for all protagonists
-    uint public founderLockup = 16 weeks; //founder tokens cannot be created until at least four months
-    uint public bountyLockup = 16 weeks;  //bounty tokens cannot be created until at least four months
+    uint public transferLockup = 8 weeks; //tokens will be locked for two months
+    uint public founderLockup = 16 weeks; //founder allocation cannot be created until at least four months
 
-    bool public halted = false; //the founder address can set this to true to halt the crowdsale due to emergency
-    bool public founderAllocated = false; //this will change to true when the founder fund is allocated
-    bool public bountyAllocated = false; //this will change to true when the founder fund is allocated
 
-    event Buy(address indexed sender, uint eth, uint fbt);
-    event Withdraw(address indexed sender, address to, uint eth);
-    event AllocateFounderTokens(address indexed sender);
-    event AllocateBountyTokens(address indexed sender);
     /** How much ETH each address has invested to this crowdsale */
     mapping (address => uint256) public investedAmountOf;
 
@@ -258,11 +240,7 @@ contract NapoleonXCrowdsale is StandardToken, SafeMath, NapoleonXPresale {
         napoleonXFounder = msg.sender;
         napoleonXMultiSigWallet = _napoleonXMultiSigWallet;
         startTime = setStartTime;
-        presaleEndTime = startTime + MAX_GREENLIST_CONTRIBUTION_DURATION;
-        endTime = startTime + MAX_GREENLIST_CONTRIBUTION_DURATION+MAX_CONTRIBUTION_DURATION;
-        // greenlistEndTime marks the end of acceptation of more commitments to the green list
-        // and the beginning  
-
+        endTime = startTime + MAX_CONTRIBUTION_DURATION;
     }
 
     // CONSTANT METHODS
@@ -283,21 +261,6 @@ contract NapoleonXCrowdsale is StandardToken, SafeMath, NapoleonXPresale {
             discountPercent = 0;
         return discountPercent;
     }
-    
-    function founderAllocationInPercent() constant returns (uint) {
-        uint founderAllocationPercent = 15;
-        if (weiRaised > 40000 ether)
-            founderAllocationPercent = 10;
-        if (weiRaised > 60000 ether)
-            founderAllocationPercent = 8;
-        if (weiRaised > 80000 ether)
-            founderAllocationPercent = 5;
-        if (weiRaised > 100000 ether)
-            founderAllocationPercent = 3;
-        return founderAllocationPercent;
-    }
-    
-    
 
     // wew here repopulate the greenlist using the historic commitments from www.napoleonx.ai website
     function populateExistingGreenList(address[] committers, uint[] values) only_napoleonXFounder onlySameLengthArray(committers, values) {
@@ -324,58 +287,41 @@ contract NapoleonXCrowdsale is StandardToken, SafeMath, NapoleonXPresale {
     {
         uint amountSentInWei = msg.value;
         // remaining committed from the green list
-        uint alreadyInvestedAmount = investedAmountOf[msg.sender];
         uint amountCommittedInWei = commitmentOf(msg.sender);
-
+        uint alreadyInvestedAmount = investedAmountOf[msg.sender];
         uint multiplier = 10 ** decimals;
-    
+        
+        
         // we here assert that the ether sent is enough to buy the smallest indivisible NPX token piece (1/100)
         uint tokenQuantaAmount = amountSentInWei*multiplier/ONE_NPX_TOKEN_PRICE;
         uint minimumQantaRequiredAmount = MIN_OWNABLE_TOKEN_FRACTION_NUMERATOR*multiplier/ MIN_OWNABLE_TOKEN_FRACTION_DENOMINATOR;
-        // people should send more than 10 hundredth which makes exactly 0.1 ether at one ether per token : the minimal investment accepted
+        // we should have more than 10 hundredth which makes exactly 0.1 ether at one ether per token : the minimal investment accepted
         assert(tokenQuantaAmount>=minimumQantaRequiredAmount);
         
-        // we are still in the presale time : only people who have registered in the greenlist can get tokens
-        if (now < presaleEndTime){
-            // people who sent money during this presale stage here should have registered a non null amount in the green list before start time
-            if (amountCommittedInWei == 0) throw;
-            // check where the total amount of weis sent (may be by multiple transactions) is 1 <= x <= 1.5
-            uint totalInvestedAmount = safeAdd(alreadyInvestedAmount,amountSentInWei);
-            
-            // we are in the accepted range to benefit from the bonus
-            if (totalInvestedAmount >= amountCommittedInWei && totalInvestedAmount <= 15*amountCommittedInWei/10){
-                tokenQuantaAmount = tokenQuantaAmount * (100 + GREENLIST_DISCOUNT) / 100;
-            }
-            
-            // we are below the accepted range to benefit from the bonus : we do nothing
-            //if (totalInvestedAmount < amountCommittedInWei){
-            //    tokenQuantaAmount = tokenQuantaAmount;
-            //}
-            
-            // we are above the accepted range to benefit from the bonus : only the committed amount will get the bonus
-            if (totalInvestedAmount > 15*amountCommittedInWei/10){
-                // if alreadyInvestedAmount > 15*amountCommittedInWei/10 : we do nothing as the bonus has already been applied to max ceiling of 15*amountCommittedInWei/10
-                if(!(alreadyInvestedAmount > 15*amountCommittedInWei/10)){
-                    uint eligibleBonusAmountInWei = safeSub(15*amountCommittedInWei/10,alreadyInvestedAmount); 
-                    uint remainingAmountSentInWei = safeSub(amountSentInWei,eligibleBonusAmountInWei);
-                    uint eligibleBonusTokenQuantaAmount = eligibleBonusAmountInWei*multiplier/ONE_NPX_TOKEN_PRICE;
-                    uint remainingAmountTokenQuantaAmount = remainingAmountSentInWei*multiplier/ONE_NPX_TOKEN_PRICE;
-                    eligibleBonusTokenQuantaAmount = eligibleBonusTokenQuantaAmount * (100 + GREENLIST_DISCOUNT) / 100;
-                    tokenQuantaAmount = remainingAmountTokenQuantaAmount+eligibleBonusTokenQuantaAmount;
-                }
-            }
-            
-
+        // the committed amount from the greenlist is still bigger than the weis sent
+        if (amountCommittedInWei>amountSentInWei){
+            uint remainingAmountCommittedInWei = safeSub(amountCommittedInWei,amountSentInWei);
+            // we update the green list accordingly
+            registerCommitment(msg.sender,remainingAmountCommittedInWei);
+            // for the amount registered in the green list the discount is a steady 
+            tokenQuantaAmount = tokenQuantaAmount * (100 + GREENLIST_DISCOUNT) / 100;
         }
         
-        // the presale is ended : we are now in the standard crowd sale : every one get the bonus according to the white paper table
-        if (now >= presaleEndTime){
-            tokenQuantaAmount = tokenQuantaAmount * (100 + discountInPercent()) / 100;
+        if (amountCommittedInWei<=amountSentInWei){
+            uint remainingAmountSentInWei = safeSub(amountSentInWei,amountCommittedInWei);
+            // we update the green list accordingly
+            registerCommitment(msg.sender,0);
+            uint remainingWeiTokenQuantaAmount = remainingAmountSentInWei*multiplier/ONE_NPX_TOKEN_PRICE;
+            uint committedWeiTokenQuantaAmount = amountCommittedInWei*multiplier/ONE_NPX_TOKEN_PRICE;
+            // for the amount not registered in the green list, we apply the standard discount methodology
+            remainingWeiTokenQuantaAmount = remainingWeiTokenQuantaAmount * (100 + discountInPercent()) / 100;
+            // for the amount registered in the green list the discount is a steady 
+            committedWeiTokenQuantaAmount = committedWeiTokenQuantaAmount * (100 + GREENLIST_DISCOUNT) / 100;
+            tokenQuantaAmount = remainingWeiTokenQuantaAmount +  committedWeiTokenQuantaAmount;
         }
-        
         // First we transfer the ether back if needed
         
-        // Mint and register minted tokens for msg.sender
+        // Mint and register token for msg.sender
         // the balance here keeps the number of NapoleonX token quanta (smallest indivisible units 1/100)
         balances[msg.sender] = safeAdd(balances[msg.sender], tokenQuantaAmount);
         totalSupply = safeAdd(totalSupply, tokenQuantaAmount);
@@ -392,10 +338,23 @@ contract NapoleonXCrowdsale is StandardToken, SafeMath, NapoleonXPresale {
         tokensSold = safeAdd(tokensSold, tokenQuantaAmount);
         
         // we do not refund the lost decimals ether 
+        //uint tokensExactPrice = tokenAmount * ONE_NPX_TOKEN_PRICE / 10 ** napoleonXToken.decimals();
+        //uint excessAmount = amountSentInWei - tokensExactPrice;
+        //uint purchaseAmount = amountSentInWei - excessAmount;
+        //// Return any excess msg.value
+        //if (excessAmount > 0) {
+        //    msg.sender.transfer(excessAmount);
+        //}
     }
 
 
-
+    bool public halted = false; //the founder address can set this to true to halt the crowdsale due to emergency
+    bool public founderAllocated = false; //this will change to true when the founder fund is allocated
+    uint public founderAllocation = 10 * 10**16; //10% of token supply allocated post-crowdsale for the founder allocation
+    event Buy(address indexed sender, uint eth, uint fbt);
+    event Withdraw(address indexed sender, address to, uint eth);
+    event AllocateFounderTokens(address indexed sender);
+    event AllocateBountyAndEcosystemTokens(address indexed sender);
 
 //    uint public ecosystemAllocation = 5 * 10**16; //5% of token supply allocated post-crowdsale for the ecosystem fund
 //    bool public ecosystemAllocated = false; //this will change to true when the ecosystem fund is allocated
@@ -464,37 +423,6 @@ contract NapoleonXCrowdsale is StandardToken, SafeMath, NapoleonXPresale {
     //    Buy(recipient, msg.value, tokens);
     //}
 
-
-    /**
-     * Set up founder address token balance.
-     *
-     * allocateBountyAndEcosystemTokens() must be calld first.
-     *
-     * Security review
-     *
-     * - Integer math: ok - only called once with fixed parameters
-     *
-     * Applicable tests:
-     *
-     * - Test bounty and ecosystem allocation
-     * - Test bounty and ecosystem allocation twice
-     *
-     */
-    function allocateBountyTokens(uint bountyPercentage) only_napoleonXFounder {
-        if (now <= endTime + bountyLockup) throw;
-        if (bountyAllocated) throw;
-        uint bountyShare =  totalSupply * bountyPercentage /100;
-        balances[bountyUser1] = safeAdd(balances[bountyUser1],bountyShare/4);
-        totalSupply = safeAdd(totalSupply,bountyShare/4);
-        balances[bountyUser2] = safeAdd(balances[bountyUser2],bountyShare/4);
-        totalSupply = safeAdd(totalSupply,bountyShare/4);
-        balances[bountyUser3] = safeAdd(balances[bountyUser3],bountyShare/4);
-        totalSupply = safeAdd(totalSupply,bountyShare/4);
-        balances[bountyUser4] = safeAdd(balances[bountyUser4],bountyShare/4);
-        bountyAllocated = true;
-        AllocateBountyTokens(msg.sender);
-    }
-
     /**
      * Set up founder address token balance.
      *
@@ -513,7 +441,7 @@ contract NapoleonXCrowdsale is StandardToken, SafeMath, NapoleonXPresale {
     function allocateFounderTokens() only_napoleonXFounder {
         if (now <= endTime + founderLockup) throw;
         if (founderAllocated) throw;
-        uint founderShare =  totalSupply * founderAllocationInPercent()/100;
+        uint founderShare =  totalSupply * FOUNDER_ALLOCATION /100;
         balances[napoleonXFounder] = safeAdd(balances[napoleonXFounder],founderShare);
         totalSupply = safeAdd(totalSupply,founderShare);
         founderAllocated = true;
