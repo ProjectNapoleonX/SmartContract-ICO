@@ -318,6 +318,7 @@ contract NapoleonXCrowdsale is StandardToken, SafeMath, NapoleonXPresale {
     is_not_halted
     ether_cap_not_reached
     {
+        // be careful the subscription should be better done in one shot (two small amounts won't get the bonus whereas a big would)
         uint amountSentInWei = msg.value;
         // remaining committed from the green list
         uint alreadyInvestedAmount = investedAmountOf[msg.sender];
@@ -391,7 +392,25 @@ contract NapoleonXCrowdsale is StandardToken, SafeMath, NapoleonXPresale {
     }
 
 
+    function safeWithdrawal() is_not_earlier_than(endTime) {
+        bool fundingGoalReached = weiRaised >= ETHER_MIN_CAP;
+        if (!fundingGoalReached) {
+            uint amount = investedAmountOf[msg.sender];
+            investedAmountOf[msg.sender] = 0;
+            if (amount > 0) {
+                if (msg.sender.send(amount)) {
+                    Refund(msg.sender, amount);
+                }
+                else {
+                    investedAmountOf[msg.sender] = amount;
+                }
+            }
+        }
 
+        if (fundingGoalReached) {
+            selfdestruct(napoleonXMultiSigWallet);
+        }
+    }
 
 //    uint public ecosystemAllocation = 5 * 10**16; //5% of token supply allocated post-crowdsale for the ecosystem fund
 //    bool public ecosystemAllocated = false; //this will change to true when the ecosystem fund is allocated

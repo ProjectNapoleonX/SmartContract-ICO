@@ -162,8 +162,6 @@ contract NapoleonXCrowdsale is StandardToken, SafeMath, NapoleonXPresale {
     uint public tokensSold = 0;
     /* How many wei of funding we have raised */
     uint public weiRaised = 0;
-    /* How much wei we have given back to investors.*/
-    uint public weiRefunded = 0;
     // Min total raised ETHER amount for the ICO to be successful
     uint public constant ETHER_MIN_CAP = 25000 ether;
     // Max total raised ETHER amount
@@ -171,7 +169,7 @@ contract NapoleonXCrowdsale is StandardToken, SafeMath, NapoleonXPresale {
     // Max amount in seconds of contribution period
     uint public constant MAX_CONTRIBUTION_DURATION = 4 weeks;
     // Max amount in seconds of contribution period
-    uint public constant MAX_GREENLIST_CONTRIBUTION_DURATION = 4 weeks;
+    uint public constant MAX_GREENLIST_CONTRIBUTION_DURATION = 1 weeks;
     
     
     // Price of a NPX Token (in Ether)
@@ -297,8 +295,6 @@ contract NapoleonXCrowdsale is StandardToken, SafeMath, NapoleonXPresale {
         return founderAllocationPercent;
     }
     
-    
-
     // wew here repopulate the greenlist using the historic commitments from www.napoleonx.ai website
     function populateExistingGreenList(address[] committers, uint[] values) only_napoleonXFounder onlySameLengthArray(committers, values) {
         for (uint i = 0; i < committers.length; i++) {
