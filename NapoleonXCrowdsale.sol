@@ -318,16 +318,15 @@ contract NapoleonXCrowdsale is StandardToken, SafeMath, NapoleonXPresale {
     is_not_halted
     ether_cap_not_reached
     {
-        // be careful the subscription should be better done in one shot (two small amounts won't get the bonus whereas a big would)
         uint amountSentInWei = msg.value;
         // remaining committed from the green list
         uint alreadyInvestedAmount = investedAmountOf[msg.sender];
         uint amountCommittedInWei = commitmentOf(msg.sender);
-
+        uint totalInvestedAmountInWei = safeAdd(alreadyInvestedAmount,amountSentInWei);
         uint multiplier = 10 ** decimals;
     
         // we here assert that the ether sent is enough to buy the smallest indivisible NPX token piece (1/100)
-        uint tokenQuantaAmount = amountSentInWei*multiplier/ONE_NPX_TOKEN_PRICE;
+        uint tokenQuantaAmount = totalInvestedAmountInWei*multiplier/ONE_NPX_TOKEN_PRICE;
         uint minimumQantaRequiredAmount = MIN_OWNABLE_TOKEN_FRACTION_NUMERATOR*multiplier/ MIN_OWNABLE_TOKEN_FRACTION_DENOMINATOR;
         // people should send more than 10 hundredth which makes exactly 0.1 ether at one ether per token : the minimal investment accepted
         assert(tokenQuantaAmount>=minimumQantaRequiredAmount);
@@ -337,10 +336,8 @@ contract NapoleonXCrowdsale is StandardToken, SafeMath, NapoleonXPresale {
             // people who sent money during this presale stage here should have registered a non null amount in the green list before start time
             if (amountCommittedInWei == 0) throw;
             // check where the total amount of weis sent (may be by multiple transactions) is 1 <= x <= 1.5
-            uint totalInvestedAmount = safeAdd(alreadyInvestedAmount,amountSentInWei);
-            
             // we are in the accepted range to benefit from the bonus
-            if (totalInvestedAmount >= amountCommittedInWei && totalInvestedAmount <= 15*amountCommittedInWei/10){
+            if (totalInvestedAmountInWei >= amountCommittedInWei && totalInvestedAmountInWei <= 15*amountCommittedInWei/10){
                 tokenQuantaAmount = tokenQuantaAmount * (100 + GREENLIST_DISCOUNT) / 100;
             }
             
@@ -350,19 +347,13 @@ contract NapoleonXCrowdsale is StandardToken, SafeMath, NapoleonXPresale {
             //}
             
             // we are above the accepted range to benefit from the bonus : only the committed amount will get the bonus
-            if (totalInvestedAmount > 15*amountCommittedInWei/10){
-                // if alreadyInvestedAmount > 15*amountCommittedInWei/10 : we do nothing as the bonus has already been applied to max ceiling of 15*amountCommittedInWei/10
-                if(!(alreadyInvestedAmount > 15*amountCommittedInWei/10)){
-                    uint eligibleBonusAmountInWei = safeSub(15*amountCommittedInWei/10,alreadyInvestedAmount); 
-                    uint remainingAmountSentInWei = safeSub(amountSentInWei,eligibleBonusAmountInWei);
-                    uint eligibleBonusTokenQuantaAmount = eligibleBonusAmountInWei*multiplier/ONE_NPX_TOKEN_PRICE;
-                    uint remainingAmountTokenQuantaAmount = remainingAmountSentInWei*multiplier/ONE_NPX_TOKEN_PRICE;
+            if (totalInvestedAmountInWei > 15*amountCommittedInWei/10){
+                    uint nonEligibleAmountInWei = safeSub(totalInvestedAmountInWei,15*amountCommittedInWei/10); 
+                    uint eligibleBonusTokenQuantaAmount = 15*amountCommittedInWei/10*multiplier/ONE_NPX_TOKEN_PRICE;
+                    uint nonEligibleBonusTokenQuantaAmount = nonEligibleAmountInWei*multiplier/ONE_NPX_TOKEN_PRICE;
                     eligibleBonusTokenQuantaAmount = eligibleBonusTokenQuantaAmount * (100 + GREENLIST_DISCOUNT) / 100;
-                    tokenQuantaAmount = remainingAmountTokenQuantaAmount+eligibleBonusTokenQuantaAmount;
-                }
+                    tokenQuantaAmount = eligibleBonusTokenQuantaAmount+nonEligibleBonusTokenQuantaAmount;
             }
-            
-
         }
         
         // the presale is ended : we are now in the standard crowd sale : every one get the bonus according to the white paper table
@@ -374,7 +365,11 @@ contract NapoleonXCrowdsale is StandardToken, SafeMath, NapoleonXPresale {
         
         // Mint and register minted tokens for msg.sender
         // the balance here keeps the number of NapoleonX token quanta (smallest indivisible units 1/100)
-        balances[msg.sender] = safeAdd(balances[msg.sender], tokenQuantaAmount);
+        // we override the token amout as it has been calculated from  the total amount invested safeAdd(alreadyInvestedAmount,amountSentInWei)
+        
+        uint oldAmount = balances[msg.sender];
+        balances[msg.sender] = tokenQuantaAmount;
+        totalSupply = safeSub(totalSupply, oldAmount);
         totalSupply = safeAdd(totalSupply, tokenQuantaAmount);
         
         // the money is immediately credited to NapoleonX Multi Signatures Wallet
