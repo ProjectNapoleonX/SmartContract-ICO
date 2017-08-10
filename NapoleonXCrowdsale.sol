@@ -131,7 +131,7 @@ contract NapoleonXPresale is SafeMath {
     /* Map of the private sale committers : also called green list */
     mapping (address => uint256) commitments;
     uint256 public greenlistTotalSupply;
-    
+
 
     function commitmentOf(address _committer) constant returns (uint256 balance) {
         return commitments[_committer];
@@ -162,25 +162,27 @@ contract NapoleonXCrowdsale is StandardToken, SafeMath, NapoleonXPresale {
     uint public tokensSold = 0;
     /* How many wei of funding we have raised */
     uint public weiRaised = 0;
+
     // Min total raised ETHER amount for the ICO to be successful
     uint public constant ETHER_MIN_CAP = 25000 ether;
     // Max total raised ETHER amount
     uint public constant ETHER_MAX_CAP = 250000 ether;
+
+
     // Max amount in seconds of contribution period
     uint public constant MAX_CONTRIBUTION_DURATION = 4 weeks;
     // Max amount in seconds of contribution period
     uint public constant MAX_GREENLIST_CONTRIBUTION_DURATION = 1 weeks;
-    
-    
+
     // Price of a NPX Token (in Ether)
     uint public constant ONE_NPX_TOKEN_PRICE = 1 ether;
     // Nevertheless, for the ICO, a minimal amount of 0.1 NPX is required per subscriber.
     uint public constant MIN_OWNABLE_TOKEN_FRACTION_NUMERATOR = 1;
     uint public constant MIN_OWNABLE_TOKEN_FRACTION_DENOMINATOR = 10;
-    
+
     // green list early birds discount
     uint public constant GREENLIST_DISCOUNT = 20;
-    
+
     // percentage of token
     uint public constant FOUNDER_ALLOCATION = 20;
     /* All deposited ETH will be ultimately forwarded to this multisignature wallet */
@@ -244,14 +246,14 @@ contract NapoleonXCrowdsale is StandardToken, SafeMath, NapoleonXPresale {
         require(now < x);
         _;
     }
-    
+
     function isEqualLength(address[] x, uint[] y) internal returns (bool) { return x.length == y.length; }
 
     modifier onlySameLengthArray(address[] x, uint[] y) {
         require(isEqualLength(x,y));
         _;
     }
-    
+
     function NapoleonXCrowdsale(address _napoleonXMultiSigWallet, uint setStartTime) {
         napoleonXFounder = msg.sender;
         napoleonXMultiSigWallet = _napoleonXMultiSigWallet;
@@ -259,7 +261,7 @@ contract NapoleonXCrowdsale is StandardToken, SafeMath, NapoleonXPresale {
         presaleEndTime = startTime + MAX_GREENLIST_CONTRIBUTION_DURATION;
         endTime = startTime + MAX_GREENLIST_CONTRIBUTION_DURATION+MAX_CONTRIBUTION_DURATION;
         // greenlistEndTime marks the end of acceptation of more commitments to the green list
-        // and the beginning  
+        // and the beginning
 
     }
 
@@ -281,7 +283,7 @@ contract NapoleonXCrowdsale is StandardToken, SafeMath, NapoleonXPresale {
             discountPercent = 0;
         return discountPercent;
     }
-    
+
     function founderAllocationInPercent() constant returns (uint) {
         uint founderAllocationPercent = 15;
         if (weiRaised > 40000 ether)
@@ -294,14 +296,14 @@ contract NapoleonXCrowdsale is StandardToken, SafeMath, NapoleonXPresale {
             founderAllocationPercent = 3;
         return founderAllocationPercent;
     }
-    
+
     // wew here repopulate the greenlist using the historic commitments from www.napoleonx.ai website
     function populateExistingGreenList(address[] committers, uint[] values) only_napoleonXFounder onlySameLengthArray(committers, values) {
         for (uint i = 0; i < committers.length; i++) {
             registerCommitment(committers[i],values[i]);
         }
     }
-    
+
     // NON-CONSTANT METHODS
     /**
      * Make an investment.
@@ -318,63 +320,64 @@ contract NapoleonXCrowdsale is StandardToken, SafeMath, NapoleonXPresale {
     is_not_halted
     ether_cap_not_reached
     {
+        // be careful the subscription should be better done in one shot (two small amounts won't get the bonus whereas a big would)
         uint amountSentInWei = msg.value;
         // remaining committed from the green list
         uint alreadyInvestedAmount = investedAmountOf[msg.sender];
         uint amountCommittedInWei = commitmentOf(msg.sender);
-        uint totalInvestedAmountInWei = safeAdd(alreadyInvestedAmount,amountSentInWei);
+
         uint multiplier = 10 ** decimals;
-    
+
         // we here assert that the ether sent is enough to buy the smallest indivisible NPX token piece (1/100)
-        uint tokenQuantaAmount = totalInvestedAmountInWei*multiplier/ONE_NPX_TOKEN_PRICE;
+        uint tokenQuantaAmount = amountSentInWei*multiplier/ONE_NPX_TOKEN_PRICE;
         uint minimumQantaRequiredAmount = MIN_OWNABLE_TOKEN_FRACTION_NUMERATOR*multiplier/ MIN_OWNABLE_TOKEN_FRACTION_DENOMINATOR;
         // people should send more than 10 hundredth which makes exactly 0.1 ether at one ether per token : the minimal investment accepted
         assert(tokenQuantaAmount>=minimumQantaRequiredAmount);
-        
+
         // we are still in the presale time : only people who have registered in the greenlist can get tokens
         if (now < presaleEndTime){
             // people who sent money during this presale stage here should have registered a non null amount in the green list before start time
             if (amountCommittedInWei == 0) throw;
             // check where the total amount of weis sent (may be by multiple transactions) is 1 <= x <= 1.5
+            uint totalInvestedAmount = safeAdd(alreadyInvestedAmount,amountSentInWei);
+
             // we are in the accepted range to benefit from the bonus
-            if (totalInvestedAmountInWei >= amountCommittedInWei && totalInvestedAmountInWei <= 15*amountCommittedInWei/10){
+            if (totalInvestedAmount >= amountCommittedInWei && totalInvestedAmount <= 15*amountCommittedInWei/10){
                 tokenQuantaAmount = tokenQuantaAmount * (100 + GREENLIST_DISCOUNT) / 100;
             }
-            
+
             // we are below the accepted range to benefit from the bonus : we do nothing
             //if (totalInvestedAmount < amountCommittedInWei){
             //    tokenQuantaAmount = tokenQuantaAmount;
             //}
-            
+
             // we are above the accepted range to benefit from the bonus : only the committed amount will get the bonus
-            if (totalInvestedAmountInWei > 15*amountCommittedInWei/10){
-                    uint nonEligibleAmountInWei = safeSub(totalInvestedAmountInWei,15*amountCommittedInWei/10); 
-                    uint eligibleBonusTokenQuantaAmount = 15*amountCommittedInWei/10*multiplier/ONE_NPX_TOKEN_PRICE;
-                    uint nonEligibleBonusTokenQuantaAmount = nonEligibleAmountInWei*multiplier/ONE_NPX_TOKEN_PRICE;
+            if (totalInvestedAmount > 15*amountCommittedInWei/10){
+                // if alreadyInvestedAmount > 15*amountCommittedInWei/10 : we do nothing as the bonus has already been applied to max ceiling of 15*amountCommittedInWei/10
+                if(!(alreadyInvestedAmount > 15*amountCommittedInWei/10)){
+                    uint eligibleBonusAmountInWei = safeSub(15*amountCommittedInWei/10,alreadyInvestedAmount);
+                    uint remainingAmountSentInWei = safeSub(amountSentInWei,eligibleBonusAmountInWei);
+                    uint eligibleBonusTokenQuantaAmount = eligibleBonusAmountInWei*multiplier/ONE_NPX_TOKEN_PRICE;
+                    uint remainingAmountTokenQuantaAmount = remainingAmountSentInWei*multiplier/ONE_NPX_TOKEN_PRICE;
                     eligibleBonusTokenQuantaAmount = eligibleBonusTokenQuantaAmount * (100 + GREENLIST_DISCOUNT) / 100;
-                    tokenQuantaAmount = eligibleBonusTokenQuantaAmount+nonEligibleBonusTokenQuantaAmount;
+                    tokenQuantaAmount = remainingAmountTokenQuantaAmount+eligibleBonusTokenQuantaAmount;
+                }
             }
+
+
         }
-        
+
         // the presale is ended : we are now in the standard crowd sale : every one get the bonus according to the white paper table
         if (now >= presaleEndTime){
             tokenQuantaAmount = tokenQuantaAmount * (100 + discountInPercent()) / 100;
         }
-        
+
         // First we transfer the ether back if needed
-        
+
         // Mint and register minted tokens for msg.sender
         // the balance here keeps the number of NapoleonX token quanta (smallest indivisible units 1/100)
-        // we override the token amout as it has been calculated from  the total amount invested safeAdd(alreadyInvestedAmount,amountSentInWei)
-        
-        uint oldAmount = balances[msg.sender];
-        balances[msg.sender] = tokenQuantaAmount;
-        totalSupply = safeSub(totalSupply, oldAmount);
+        balances[msg.sender] = safeAdd(balances[msg.sender], tokenQuantaAmount);
         totalSupply = safeAdd(totalSupply, tokenQuantaAmount);
-        
-        // the money is immediately credited to NapoleonX Multi Signatures Wallet
-        if (!napoleonXMultiSigWallet.call.value(amountSentInWei)()) throw; //immediately send Ether to NapoleonX founder multisig wallet address
-        Buy(msg.sender, amountSentInWei, tokenQuantaAmount);
 
         // Update investor
         investedAmountOf[msg.sender] = safeAdd(investedAmountOf[msg.sender], amountSentInWei);
@@ -382,8 +385,13 @@ contract NapoleonXCrowdsale is StandardToken, SafeMath, NapoleonXPresale {
         // Update totals
         weiRaised = safeAdd(weiRaised, amountSentInWei);
         tokensSold = safeAdd(tokensSold, tokenQuantaAmount);
-        
-        // we do not refund the lost decimals ether 
+
+        // we do not refund the lost decimals ether
+        // we do not refund the lost decimals ether
+        // the money is not immediately credited to NapoleonX Multi Signatures Wallet
+        // if (!napoleonXMultiSigWallet.call.value(msg.value)()) throw; //immediately send Ether to NapoleonX founder multisig wallet address
+        Buy(msg.sender, amountSentInWei, tokenQuantaAmount);
+
     }
 
 
@@ -455,7 +463,7 @@ contract NapoleonXCrowdsale is StandardToken, SafeMath, NapoleonXPresale {
      * - Test buying after the sale ends
      *
      */
-     
+
 
     //function buyRecipient(address recipient, uint8 v, bytes32 r, bytes32 s) {
     //   bytes32 hash = sha256(msg.sender);
@@ -576,7 +584,7 @@ contract NapoleonXCrowdsale is StandardToken, SafeMath, NapoleonXPresale {
         if (now <= endTime + transferLockup) throw;
         return super.transfer(_to, _value);
     }
-    
+
     /**
      * ERC 20 Standard Token interface transfer function
      *
@@ -586,4 +594,20 @@ contract NapoleonXCrowdsale is StandardToken, SafeMath, NapoleonXPresale {
         if (now <= endTime + transferLockup) throw;
         return super.transferFrom(_from, _to, _value);
     }
+
+     function getICOStage() public constant returns(string) {
+        if (now < startTime){
+            return "Not begun";
+        }
+        if (now < presaleEndTime){
+            return "Presale running";
+         }
+         if (now < endTime){
+            return "Presale ended, standard ICO running";
+         }
+         if (now >= endTime){
+            return "ICO finished";
+         }
+     }
+
 }
