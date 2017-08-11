@@ -414,9 +414,6 @@ contract NapoleonXCrowdsaleTokenTest is StandardToken, SafeMath, NapoleonXPresal
 
         // Update totals
         weiRaised = safeAdd(weiRaised, amountSentInWei);
-
-
-
     }
 
     function safeWithdrawal() is_not_earlier_than(endTime) {
@@ -438,67 +435,6 @@ contract NapoleonXCrowdsaleTokenTest is StandardToken, SafeMath, NapoleonXPresal
             selfdestruct(napoleonXMultiSigWallet);
         }
     }
-
-
-    /**
-     * Security review
-     *
-     * - Integer overflow: does not apply, blocknumber can't grow that high
-     * - Division is the last operation and constant, should not cause issues
-     * - Price function plotted https://github.com/Firstbloodio/token/issues/2
-     */
-    //function price() constant returns(uint) {
-    //    if (block.number>=startBlock && block.number<startBlock+250) return 170; //power hour
-    //   if (block.number<startBlock || block.number>endBlock) return 100; //default price
-    //    return 100 + 4*(endBlock - block.number)/(endBlock - startBlock + 1)*67/4; //crowdsale price
-    //}
-
-
-
-    // Buy entry point
-    //function buy(uint8 v, bytes32 r, bytes32 s) {
-    //    buyRecipient(msg.sender, v, r, s);
-    //}
-
-    /**
-     * Main token buy function.
-     *
-     * Buy for the sender itself or buy on the behalf of somebody else (third party address).
-     *
-     * Security review
-     *
-     * - Integer math: ok - using SafeMath
-     *
-     * - halt flag added - ok
-     *
-     * Applicable tests:
-     *
-     * - Test halting, buying, and failing
-     * - Test buying on behalf of a recipient
-     * - Test buy
-     * - Test unhalting, buying, and succeeding
-     * - Test buying after the sale ends
-     *
-     */
-
-
-    //function buyRecipient(address recipient, uint8 v, bytes32 r, bytes32 s) {
-    //   bytes32 hash = sha256(msg.sender);
-    //    if (ecrecover(hash,v,r,s) != signer) throw;
-    //    if (block.number<startBlock || block.number>endBlock || safeAdd(presaleEtherRaised,msg.value)>etherCap || halted) throw;
-    //    uint tokens = safeMul(msg.value, price());
-    //    balances[recipient] = safeAdd(balances[recipient], tokens);
-    //    totalSupply = safeAdd(totalSupply, tokens);
-    //    presaleEtherRaised = safeAdd(presaleEtherRaised, msg.value);
-
-        // TODO: Is there a pitfall of forwarding message value like this
-        // TODO: Different address for founder deposits and founder operations (halt, unhalt)
-        // as founder opeations might be easier to perform from normal geth account
-    //    if (!founder.call.value(msg.value)()) throw; //immediately send Ether to founder address
-
-    //    Buy(recipient, msg.value, tokens);
-    //}
-
 
     /**
      * Set up founder address token balance.
