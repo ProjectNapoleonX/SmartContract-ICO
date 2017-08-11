@@ -223,7 +223,6 @@ contract NapoleonXCrowdsaleTokenTest is StandardToken, SafeMath, NapoleonXPresal
     event AllocateFounderTokens(address indexed sender);
     event AllocateBountyTokens(address indexed sender);
     /** How much ETH each address has invested to this crowdsale */
-    mapping (address => uint256) public presaleInvestedAmountOf;
     mapping (address => uint256) public investedAmountOf;
 
     // EVENTS
@@ -335,7 +334,7 @@ contract NapoleonXCrowdsaleTokenTest is StandardToken, SafeMath, NapoleonXPresal
         // be careful the subscription should be better done in one shot (two small amounts won't get the bonus whereas a big would)
         uint amountSentInWei = msg.value;
         // remaining committed from the green list
-        uint presaleAlreadyInvestedAmount = presaleInvestedAmountOf[msg.sender];
+        uint presaleAlreadyInvestedAmount = investedAmountOf[msg.sender];
         uint presaleAmountCommittedInWei = commitmentOf(msg.sender);
 
         // we are still in the presale time : only people who have registered in the greenlist can get tokens
@@ -383,7 +382,6 @@ contract NapoleonXCrowdsaleTokenTest is StandardToken, SafeMath, NapoleonXPresal
             totalSupply = safeAdd(totalSupply,presaleTokenAmount);
 
             // we update the user presale ether investment
-            presaleInvestedAmountOf[msg.sender] = safeAdd(presaleInvestedAmountOf[msg.sender],amountSentInWei);
             presaleEtherRaised = safeAdd(presaleEtherRaised, amountSentInWei);
 
             PresaleBuy(msg.sender, totalPresaleInvestedAmount, presaleTokenAmount);
@@ -414,6 +412,7 @@ contract NapoleonXCrowdsaleTokenTest is StandardToken, SafeMath, NapoleonXPresal
 
         // Update totals
         weiRaised = safeAdd(weiRaised, amountSentInWei);
+
     }
 
     function safeWithdrawal() is_not_earlier_than(endTime) {
