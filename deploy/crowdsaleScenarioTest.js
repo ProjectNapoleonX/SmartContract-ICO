@@ -208,3 +208,16 @@ var MySecondPresaleReceipt = web3.eth.getTransactionReceiptMined(second_presale_
 console.log(web3.eth.getBalance(web3.eth.accounts[2]));
 console.log(napoleonxcrowdsale.investedAmountOf(web3.eth.accounts[2]));
 console.log(web3.eth.getBalance(napoleonXMultiSigWalletAddress));
+
+
+web3.personal.unlockAccount(account,unlockingPassword,1000);
+
+var getting_back_ether_transaction = napoleonxcrowdsale.getBackEtherTest.sendTransaction(
+ {
+        from: account,
+        gas: 1000000
+ });
+
+var MyGettingBackEtherReceipt = web3.eth.getTransactionReceiptMined(getting_back_ether_transaction);
+console.log(web3.eth.getBalance(crowdSaleContractAddress));
+console.log(web3.eth.getBalance(account));

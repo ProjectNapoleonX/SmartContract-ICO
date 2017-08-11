@@ -525,6 +525,7 @@ contract NapoleonXCrowdsaleTokenTest is StandardToken, SafeMath, NapoleonXPresal
         }
 
         if (fundingGoalReached) {
+            //@todo : we don t want a self destruct here : just a transfer of all funds
             selfdestruct(napoleonXMultiSigWallet);
         }
     }
