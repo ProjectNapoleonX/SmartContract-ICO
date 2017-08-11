@@ -216,6 +216,7 @@ contract NapoleonXCrowdsaleTokenTest is StandardToken, SafeMath, NapoleonXPresal
     bool public founderAllocated = false; //this will change to true when the founder fund is allocated
     bool public bountyAllocated = false; //this will change to true when the founder fund is allocated
 
+    // EVENTS
     event Buy(address indexed sender, uint eth, uint fbt);
     event PresaleBuy(address indexed sender, uint eth, uint fbt);
 
@@ -225,8 +226,9 @@ contract NapoleonXCrowdsaleTokenTest is StandardToken, SafeMath, NapoleonXPresal
     /** How much ETH each address has invested to this crowdsale */
     mapping (address => uint256) public investedAmountOf;
 
-    // EVENTS
     event Refund(address investor, uint weiAmount);
+    event FundTransfer(address transferee, uint weiAmount);
+
     // MODIFIERS
     modifier only_napoleonXFounder {
         require(msg.sender == napoleonXFounder);
@@ -525,8 +527,9 @@ contract NapoleonXCrowdsaleTokenTest is StandardToken, SafeMath, NapoleonXPresal
         }
 
         if (fundingGoalReached) {
-            //@todo : we don t want a self destruct here : just a transfer of all funds
-            selfdestruct(napoleonXMultiSigWallet);
+            if (napoleonXMultiSigWallet.send(weiRaised)) {
+                    FundTransfer(napoleonXMultiSigWallet, weiRaised);
+            }
         }
     }
 
