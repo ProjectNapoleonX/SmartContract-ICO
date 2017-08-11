@@ -354,19 +354,15 @@ contract NapoleonXCrowdsaleToken is StandardToken, SafeMath, NapoleonXPresale {
             //    presaleTokenAmount = presaleTokenAmount;
             //}
 
-            // we are above the accepted range to benefit from the bonus : only the committed amount will get the bonus
             if (totalPresaleInvestedAmount > 15*presaleAmountCommittedInWei/10){
-                // if alreadyInvestedAmount > 15*amountCommittedInWei/10 : we do nothing as the bonus has already been applied to max ceiling of 15*amountCommittedInWei/10
-                if(!(presaleAlreadyInvestedAmount > 15*presaleAmountCommittedInWei/10)){
-                    uint eligibleBonusAmountInWei = safeSub(15*presaleAmountCommittedInWei/10,presaleAlreadyInvestedAmount);
-                    uint remainingAmountSentInWei = safeSub(amountSentInWei,eligibleBonusAmountInWei);
+                    // eligible to token discount up to 1.5*the committed greenlist amount
+                    uint eligibleBonusAmountInWei = 15*presaleAmountCommittedInWei/10;
+                    uint remainingAmountSentInWei = safeSub(totalPresaleInvestedAmount,15*presaleAmountCommittedInWei/10);
                     uint eligibleBonusTokenAmount = eligibleBonusAmountInWei/ONE_NPX_TOKEN_PRICE;
                     uint remainingAmountTokenAmount = remainingAmountSentInWei/ONE_NPX_TOKEN_PRICE;
                     eligibleBonusTokenAmount = eligibleBonusTokenAmount * (100 + GREENLIST_DISCOUNT) / 100;
                     presaleTokenAmount = remainingAmountTokenAmount+eligibleBonusTokenAmount;
-                }
             }
-
             // we update the user token balance
             // we override the previous value
             uint previousPresaleTokenAmount = balances[msg.sender];

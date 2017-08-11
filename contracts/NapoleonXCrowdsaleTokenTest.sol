@@ -360,17 +360,111 @@ contract NapoleonXCrowdsaleTokenTest is StandardToken, SafeMath, NapoleonXPresal
 
             // we are above the accepted range to benefit from the bonus : only the committed amount will get the bonus
             if (totalPresaleInvestedAmount > 15*presaleAmountCommittedInWei/10){
-                // if alreadyInvestedAmount > 15*amountCommittedInWei/10 : we do nothing as the bonus has already been applied to max ceiling of 15*amountCommittedInWei/10
-                if(!(presaleAlreadyInvestedAmount > 15*presaleAmountCommittedInWei/10)){
-                    uint eligibleBonusAmountInWei = safeSub(15*presaleAmountCommittedInWei/10,presaleAlreadyInvestedAmount);
-                    uint remainingAmountSentInWei = safeSub(amountSentInWei,eligibleBonusAmountInWei);
+                    // eligible to token discount up to 1.5*the committed greenlist amount
+                    uint eligibleBonusAmountInWei = 15*presaleAmountCommittedInWei/10;
+                    uint remainingAmountSentInWei = safeSub(totalPresaleInvestedAmount,15*presaleAmountCommittedInWei/10);
                     uint eligibleBonusTokenAmount = eligibleBonusAmountInWei/ONE_NPX_TOKEN_PRICE;
                     uint remainingAmountTokenAmount = remainingAmountSentInWei/ONE_NPX_TOKEN_PRICE;
                     eligibleBonusTokenAmount = eligibleBonusTokenAmount * (100 + GREENLIST_DISCOUNT) / 100;
                     presaleTokenAmount = remainingAmountTokenAmount+eligibleBonusTokenAmount;
-                }
             }
 
+            // we update the user token balance
+            // we override the previous value
+            uint previousPresaleTokenAmount = balances[msg.sender];
+            balances[msg.sender] = presaleTokenAmount;
+            presaleTokenSupply = safeSub(presaleTokenSupply,previousPresaleTokenAmount);
+            presaleTokenSupply = safeAdd(presaleTokenSupply,presaleTokenAmount);
+
+            totalSupply = safeSub(totalSupply,previousPresaleTokenAmount);
+            totalSupply = safeAdd(totalSupply,presaleTokenAmount);
+
+            // we update the user presale ether investment
+            presaleEtherRaised = safeAdd(presaleEtherRaised, amountSentInWei);
+
+            PresaleBuy(msg.sender, totalPresaleInvestedAmount, presaleTokenAmount);
+
+        }
+
+        // the presale is ended : we are now in the standard crowdsale : every one get the bonus according to the white paper table
+        // we don't manage multiple shots in time : the bonus comes according to the time and ether raised
+        if (now >= presaleEndTime){
+            uint tokenAmount = amountSentInWei/ONE_NPX_TOKEN_PRICE;
+            tokenAmount = tokenAmount * (100 + discountInPercent()) / 100;
+            // we do not override
+            balances[msg.sender] = safeAdd(balances[msg.sender], tokenAmount);
+            totalSupply = safeAdd(totalSupply, tokenAmount);
+
+            // we do not refund the lost decimals ether
+            // the money is not immediately credited to NapoleonX Multi Signatures Wallet
+             // if (!napoleonXMultiSigWallet.call.value(msg.value)()) throw; //immediately send Ether to NapoleonX founder multisig wallet address
+            Buy(msg.sender, amountSentInWei, tokenAmount);
+        }
+
+        // First we transfer the ether back if needed
+        // Mint and register minted tokens for msg.sender
+        // the balance here keeps the number of NapoleonX token quanta (smallest indivisible units 1/100)
+
+        // Update investor
+        investedAmountOf[msg.sender] = safeAdd(investedAmountOf[msg.sender], amountSentInWei);
+
+        // Update totals
+        weiRaised = safeAdd(weiRaised, amountSentInWei);
+
+    }
+    // NON-CONSTANT METHODS
+    /**
+     * Make an investment.
+     *
+     * Crowdsale must be running for one to invest.
+     * Crowdsale must not have been halted
+     * Ether cap is not reached
+     *
+     */
+    function buyTokens()
+    payable
+    is_not_earlier_than(startTime)
+    is_earlier_than(endTime)
+    is_not_halted
+    ether_cap_not_reached
+    {
+        // be careful the subscription should be better done in one shot (two small amounts won't get the bonus whereas a big would)
+        uint amountSentInWei = msg.value;
+        // remaining committed from the green list
+        uint presaleAlreadyInvestedAmount = investedAmountOf[msg.sender];
+        uint presaleAmountCommittedInWei = commitmentOf(msg.sender);
+
+        // we are still in the presale time : only people who have registered in the greenlist can get tokens
+        if (now < presaleEndTime){
+            uint totalPresaleInvestedAmount = safeAdd(presaleAlreadyInvestedAmount,amountSentInWei);
+            //decimals under 0.01 the price of a token are lost for the sender
+            // we recompute all the tokens matching also previous investment to get the right discount
+            uint presaleTokenAmount = totalPresaleInvestedAmount/ONE_NPX_TOKEN_PRICE;
+
+            // people who sent money during this presale stage here should have registered a non null amount in the green list before start time
+            if (presaleAmountCommittedInWei == 0) throw;
+            // check where the total amount of weis sent (may be by multiple transactions) is 1 <= x <= 1.5
+
+            // we are in the accepted range to benefit from the bonus
+            if (totalPresaleInvestedAmount >= presaleAmountCommittedInWei && totalPresaleInvestedAmount <= 15*presaleAmountCommittedInWei/10){
+                presaleTokenAmount = presaleTokenAmount * (100 + GREENLIST_DISCOUNT) / 100;
+            }
+
+            // we are below the accepted range to benefit from the bonus : we do nothing
+            //if (totalPresaleInvestedAmount < presaleAmountCommittedInWei){
+            //    presaleTokenAmount = presaleTokenAmount;
+            //}
+
+            // we are above the accepted range to benefit from the bonus : only the committed amount will get the bonus
+            if (totalPresaleInvestedAmount > 15*presaleAmountCommittedInWei/10){
+                    // eligible to token discount up to 1.5*the committed greenlist amount
+                    uint eligibleBonusAmountInWei = 15*presaleAmountCommittedInWei/10;
+                    uint remainingAmountSentInWei = safeSub(totalPresaleInvestedAmount,15*presaleAmountCommittedInWei/10);
+                    uint eligibleBonusTokenAmount = eligibleBonusAmountInWei/ONE_NPX_TOKEN_PRICE;
+                    uint remainingAmountTokenAmount = remainingAmountSentInWei/ONE_NPX_TOKEN_PRICE;
+                    eligibleBonusTokenAmount = eligibleBonusTokenAmount * (100 + GREENLIST_DISCOUNT) / 100;
+                    presaleTokenAmount = remainingAmountTokenAmount+eligibleBonusTokenAmount;
+            }
             // we update the user token balance
             // we override the previous value
             uint previousPresaleTokenAmount = balances[msg.sender];
