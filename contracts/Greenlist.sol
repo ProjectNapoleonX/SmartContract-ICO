@@ -37,7 +37,7 @@ contract Greenlist is SafeMath {
     uint256 public totalSupply;
 
     /* important : after deploying, set greenlist.napoleonx.eth address to resolve to the deployed contract address */
-    function Greenlist() public {
+    function Greenlist() {
         moderator = msg.sender;
     }
 
