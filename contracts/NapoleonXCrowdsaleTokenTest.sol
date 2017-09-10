@@ -207,27 +207,27 @@ contract NapoleonXCrowdsaleTokenTest is StandardToken, SafeMath, NapoleonXPresal
     address napoleonXAdministrator;
     /* bounty program address hardcoded */
     // Stephane
-    address napoleonXFounder1 = 0x6551f97F7d133083b11c0350C5FA83eefEE8000d;
+    address napoleonXFounder1 = 0x0000000000000000000000000000000000000000;
     // Arnaud
-    address napoleonXFounder2 = 0x6551f97F7d133083b11c0350C5FA83eefEE8000d;
+    address napoleonXFounder2 = 0x0000000000000000000000000000000000000000;
     // Jean-Charles
-    address napoleonXFounder3 = 0x6551f97F7d133083b11c0350C5FA83eefEE8000d;
+    address napoleonXFounder3 = 0x0000000000000000000000000000000000000000;
 	
     // Stefan
     address bountyUser1 = 0x6551f97F7d133083b11c0350C5FA83eefEE8000d;
     // Alexandre
-    address bountyUser2 = 0x6551f97F7d133083b11c0350C5FA83eefEE8000d;
+    address bountyUser2 = 0x0000000000000000000000000000000000000000;
     // Marien
-    address bountyUser3 = 0x6551f97F7d133083b11c0350C5FA83eefEE8000d;
+    address bountyUser3 = 0x0000000000000000000000000000000000000000;
     // Carlos
-    address bountyUser4 = 0x6551f97F7d133083b11c0350C5FA83eefEE8000d;
+    address bountyUser4 = 0x0000000000000000000000000000000000000000;
     // Jianfei
-    address bountyUser5 = 0x6551f97F7d133083b11c0350C5FA83eefEE8000d;
+    address bountyUser5 = 0x0000000000000000000000000000000000000000;
     // Kun
-    address bountyUser6 = 0x6551f97F7d133083b11c0350C5FA83eefEE8000d;
+    address bountyUser6 = 0x0000000000000000000000000000000000000000;
 	
-	// external people who will benefit from the bounty
-    address bountyUserAllExternals = 0x6551f97F7d133083b11c0350C5FA83eefEE8000d;
+    // external people who will benefit from the bounty
+    address bountyUserAllExternals = 0x0000000000000000000000000000000000000000;
 
     /* Contribution start/end time in seconds */
     uint public startTime;
@@ -575,7 +575,7 @@ contract NapoleonXCrowdsaleTokenTest is StandardToken, SafeMath, NapoleonXPresal
     function allocateBountyTokens() only_napoleonXAdministrator {
         if (now <= endTime + bountyLockup) throw;
         if (bountyAllocated) throw;
-		// SENIOR ALLOCATION
+	// SENIOR ALLOCATION
         uint bountyShareSenior =  totalSupply * BOUNTY_ALLOCATION_SENIOR /100;
         balances[bountyUser1] = safeAdd(balances[bountyUser1],bountyShareSenior);
         totalSupply = safeAdd(totalSupply,bountyShareSenior);
@@ -584,7 +584,7 @@ contract NapoleonXCrowdsaleTokenTest is StandardToken, SafeMath, NapoleonXPresal
         balances[bountyUser3] = safeAdd(balances[bountyUser3],bountyShareSenior);
         totalSupply = safeAdd(totalSupply,bountyShareSenior);
 		
-		// JUNIOR ALLOCATION
+	// JUNIOR ALLOCATION
         uint bountyShareJunior =  totalSupply * BOUNTY_ALLOCATION_JUNIOR /100;
         balances[bountyUser4] = safeAdd(balances[bountyUser4],bountyShareJunior);
         totalSupply = safeAdd(totalSupply,bountyShareJunior);
@@ -593,8 +593,8 @@ contract NapoleonXCrowdsaleTokenTest is StandardToken, SafeMath, NapoleonXPresal
         balances[bountyUser6] = safeAdd(balances[bountyUser6],bountyShareJunior);
         totalSupply = safeAdd(totalSupply,bountyShareJunior);
 		
-		// EXTERNAL ALLOCATION
-		uint bountyShareExternal =  totalSupply * BOUNTY_ALLOCATION_EXTERNAL /100;
+	// EXTERNAL ALLOCATION
+	uint bountyShareExternal =  totalSupply * BOUNTY_ALLOCATION_EXTERNAL /100;
         balances[bountyUserAllExternals] = safeAdd(balances[bountyUserAllExternals],bountyShareExternal);
         totalSupply = safeAdd(totalSupply,bountyShareExternal);
 		
@@ -623,9 +623,9 @@ contract NapoleonXCrowdsaleTokenTest is StandardToken, SafeMath, NapoleonXPresal
         uint founderShare =  totalSupply * founderAllocationInPercent()/100;
         balances[napoleonXFounder1] = safeAdd(balances[napoleonXFounder1],founderShare);
         totalSupply = safeAdd(totalSupply,founderShare);
-		balances[napoleonXFounder2] = safeAdd(balances[napoleonXFounder2],founderShare);
+	balances[napoleonXFounder2] = safeAdd(balances[napoleonXFounder2],founderShare);
         totalSupply = safeAdd(totalSupply,founderShare);
-		balances[napoleonXFounder3] = safeAdd(balances[napoleonXFounder3],founderShare);
+	balances[napoleonXFounder3] = safeAdd(balances[napoleonXFounder3],founderShare);
         totalSupply = safeAdd(totalSupply,founderShare);
 
         founderAllocated = true;
