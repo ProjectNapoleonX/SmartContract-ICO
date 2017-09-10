@@ -188,17 +188,42 @@ contract NapoleonXCrowdsaleToken is StandardToken, SafeMath, NapoleonXPresale {
     // green list early birds discount
     uint public constant GREENLIST_DISCOUNT = 20;
 
-    // percentage of token
+    // percentage of token for founder allocation
     uint public constant FOUNDER_ALLOCATION = 20;
+	
+    // percentage of token for bounty allocation	
+	uint public BOUNTY_ALLOCATION_EXTERNAL = 5;
+	uint public BOUNTY_ALLOCATION_SENIOR = 5;
+	uint public BOUNTY_ALLOCATION_JUNIOR = 1;
+	
+	
     /* All deposited ETH will be ultimately forwarded to this multisignature wallet */
     address napoleonXMultiSigWallet;
-    /* this napoleonXFounder address is where napoleonx.eth resolves to */
-    address napoleonXFounder;
+    /* this napoleonXAdministrator address is where napoleonx.eth resolves to */
+    address napoleonXAdministrator;
     /* bounty program address hardcoded */
+    // Stephane
+    address napoleonXFounder1 = 0x6551f97F7d133083b11c0350C5FA83eefEE8000d;
+    // Arnaud
+    address napoleonXFounder2 = 0x6551f97F7d133083b11c0350C5FA83eefEE8000d;
+    // Jean-Charles
+    address napoleonXFounder3 = 0x6551f97F7d133083b11c0350C5FA83eefEE8000d;
+	
+    // Stefan
     address bountyUser1 = 0x6551f97F7d133083b11c0350C5FA83eefEE8000d;
+    // Alexandre
     address bountyUser2 = 0x6551f97F7d133083b11c0350C5FA83eefEE8000d;
+    // Marien
     address bountyUser3 = 0x6551f97F7d133083b11c0350C5FA83eefEE8000d;
+    // Carlos
     address bountyUser4 = 0x6551f97F7d133083b11c0350C5FA83eefEE8000d;
+    // Jianfei
+    address bountyUser5 = 0x6551f97F7d133083b11c0350C5FA83eefEE8000d;
+    // Kun
+    address bountyUser6 = 0x6551f97F7d133083b11c0350C5FA83eefEE8000d;
+	
+	// external people who will benefit from the bounty
+    address bountyUserAllExternals = 0x6551f97F7d133083b11c0350C5FA83eefEE8000d;
 
     /* Contribution start/end time in seconds */
     uint public startTime;
@@ -227,8 +252,8 @@ contract NapoleonXCrowdsaleToken is StandardToken, SafeMath, NapoleonXPresale {
     event FundTransfer(address transferee, uint weiAmount);
 
     // MODIFIERS
-    modifier only_napoleonXFounder {
-        require(msg.sender == napoleonXFounder);
+    modifier only_napoleonXAdministrator {
+        require(msg.sender == napoleonXAdministrator);
         _;
     }
 
@@ -264,8 +289,8 @@ contract NapoleonXCrowdsaleToken is StandardToken, SafeMath, NapoleonXPresale {
         _;
     }
 
-    function NapoleonXCrowdsaleTokenTest(address _napoleonXMultiSigWallet, uint setStartTime) {
-        napoleonXFounder = msg.sender;
+    function NapoleonXCrowdsaleToken(address _napoleonXMultiSigWallet, uint setStartTime) {
+        napoleonXAdministrator = msg.sender;
         napoleonXMultiSigWallet = _napoleonXMultiSigWallet;
         startTime = setStartTime;
         presaleEndTime = startTime + MAX_GREENLIST_CONTRIBUTION_DURATION;
@@ -308,7 +333,7 @@ contract NapoleonXCrowdsaleToken is StandardToken, SafeMath, NapoleonXPresale {
     }
 
     // wew here repopulate the greenlist using the historic commitments from www.napoleonx.ai website
-    function populateExistingGreenList(address[] committers, uint[] values) only_napoleonXFounder onlySameLengthArray(committers, values) {
+    function populateExistingGreenList(address[] committers, uint[] values) only_napoleonXAdministrator onlySameLengthArray(committers, values) {
         for (uint i = 0; i < committers.length; i++) {
             registerCommitment(committers[i],values[i]);
         }
@@ -448,17 +473,32 @@ contract NapoleonXCrowdsaleToken is StandardToken, SafeMath, NapoleonXPresale {
      * - Test bounty and ecosystem allocation twice
      *
      */
-    function allocateBountyTokens(uint bountyPercentage) only_napoleonXFounder {
+    function allocateBountyTokens() only_napoleonXAdministrator {
         if (now <= endTime + bountyLockup) throw;
         if (bountyAllocated) throw;
-        uint bountyShare =  totalSupply * bountyPercentage /100;
-        balances[bountyUser1] = safeAdd(balances[bountyUser1],bountyShare/4);
-        totalSupply = safeAdd(totalSupply,bountyShare/4);
-        balances[bountyUser2] = safeAdd(balances[bountyUser2],bountyShare/4);
-        totalSupply = safeAdd(totalSupply,bountyShare/4);
-        balances[bountyUser3] = safeAdd(balances[bountyUser3],bountyShare/4);
-        totalSupply = safeAdd(totalSupply,bountyShare/4);
-        balances[bountyUser4] = safeAdd(balances[bountyUser4],bountyShare/4);
+		// SENIOR ALLOCATION
+        uint bountyShareSenior =  totalSupply * BOUNTY_ALLOCATION_SENIOR /100;
+        balances[bountyUser1] = safeAdd(balances[bountyUser1],bountyShareSenior);
+        totalSupply = safeAdd(totalSupply,bountyShareSenior);
+        balances[bountyUser2] = safeAdd(balances[bountyUser2],bountyShareSenior);
+        totalSupply = safeAdd(totalSupply,bountyShareSenior);
+        balances[bountyUser3] = safeAdd(balances[bountyUser3],bountyShareSenior);
+        totalSupply = safeAdd(totalSupply,bountyShareSenior);
+		
+		// JUNIOR ALLOCATION
+        uint bountyShareJunior =  totalSupply * BOUNTY_ALLOCATION_JUNIOR /100;
+        balances[bountyUser4] = safeAdd(balances[bountyUser4],bountyShareJunior);
+        totalSupply = safeAdd(totalSupply,bountyShareJunior);
+        balances[bountyUser5] = safeAdd(balances[bountyUser5],bountyShareJunior);
+        totalSupply = safeAdd(totalSupply,bountyShareJunior);
+        balances[bountyUser6] = safeAdd(balances[bountyUser6],bountyShareJunior);
+        totalSupply = safeAdd(totalSupply,bountyShareJunior);
+		
+		// EXTERNAL ALLOCATION
+		uint bountyShareExternal =  totalSupply * BOUNTY_ALLOCATION_EXTERNAL /100;
+        balances[bountyUserAllExternals] = safeAdd(balances[bountyUserAllExternals],bountyShareExternal);
+        totalSupply = safeAdd(totalSupply,bountyShareExternal);
+		
         bountyAllocated = true;
         AllocateBountyTokens(msg.sender);
     }
@@ -478,12 +518,17 @@ contract NapoleonXCrowdsaleToken is StandardToken, SafeMath, NapoleonXPresale {
      * - Test bounty and ecosystem allocation twice
      *
      */
-    function allocateFounderTokens() only_napoleonXFounder {
+    function allocateFounderTokens() only_napoleonXAdministrator {
         if (now <= endTime + founderLockup) throw;
         if (founderAllocated) throw;
         uint founderShare =  totalSupply * founderAllocationInPercent()/100;
-        balances[napoleonXFounder] = safeAdd(balances[napoleonXFounder],founderShare);
+        balances[napoleonXFounder1] = safeAdd(balances[napoleonXFounder1],founderShare);
         totalSupply = safeAdd(totalSupply,founderShare);
+		balances[napoleonXFounder2] = safeAdd(balances[napoleonXFounder2],founderShare);
+        totalSupply = safeAdd(totalSupply,founderShare);
+		balances[napoleonXFounder3] = safeAdd(balances[napoleonXFounder3],founderShare);
+        totalSupply = safeAdd(totalSupply,founderShare);
+
         founderAllocated = true;
         AllocateFounderTokens(msg.sender);
     }
@@ -495,16 +540,16 @@ contract NapoleonXCrowdsaleToken is StandardToken, SafeMath, NapoleonXPresale {
      *
      * - Test unhalting, buying, and succeeding
      */
-    function halt() only_napoleonXFounder {
+    function halt() only_napoleonXAdministrator {
         halted = true;
     }
 
-    function unhalt() only_napoleonXFounder {
+    function unhalt() only_napoleonXAdministrator {
         halted = false;
     }
 
-    function changeFounder(address newFounder) only_napoleonXFounder {
-        napoleonXFounder = newFounder;
+    function changeFounder(address newAdministrator) only_napoleonXAdministrator {
+        napoleonXAdministrator = newAdministrator;
     }
 
     /**
