@@ -1,0 +1,34 @@
+truffle migrate
+Using network 'development'.
+
+Running migration: 1_initial_migration.js
+  Deploying Migrations...
+  ... 0xefd954e6eabeb5b8126a469a7a74b2cc1e6ffc1bbb248d57cc9b66bac0c9c3f2
+^C
+ubuntu@ip-172-31-34-69:~/Whitelist$ truffle migrate
+Using network 'development'.
+
+Running migration: 1_initial_migration.js
+  Deploying Migrations...
+  ... 0x330412464153ff4e28921a10e4e18b42350584775d014c382ac38394607159eb
+  Migrations: 0x7f50266404ef479737dfc12bf701f0d74f33c948
+Saving artifacts...
+Running migration: 2_deploy_whitelist.js
+  Deploying Whitelist...
+  ... 0xb50ff360ffd5f52897c1659aa290a3758373ac2b56ac91516176c59cb45d7218
+  Whitelist: 0x45f0f40297df736fe33efbf703d6ff287cb29cf7
+Saving artifacts...
+Running migration: 3_deploy_crowdsale.js
+{ VAULT: '0x5753930b7d0443dd3769782c169786844db68d49',
+  START_DATE: 1516233600,
+  END_DATE: 1519776000,
+  MIN_CONTRIB: 300000000000000000 }
+  Deploying Crowdsale...
+  ... 0x03836421926d8eaa27d95e168a89d578f628429094a064017e74a44584bea518
+  Crowdsale: 0x7c4393ee129d7856b5bd765c2d20b66f464ccd0f
+Saving artifacts...
+
+
+
+from myEtherWallet :
+0x09555d2ffc533fbec4e086c1f791b75296aa0973
