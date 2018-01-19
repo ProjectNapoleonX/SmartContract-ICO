@@ -17,41 +17,8 @@ var account = web3.eth.accounts[0];
 
 console.log(account);
 
-var napoleonxGatewayAbi =
+var napoleonxWhitelistAbi =
 [
-    {
-      "constant": true,
-      "inputs": [
-        {
-          "name": "",
-          "type": "address"
-        }
-      ],
-      "name": "owners",
-      "outputs": [
-        {
-          "name": "",
-          "type": "bool"
-        }
-      ],
-      "payable": false,
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "constant": false,
-      "inputs": [
-        {
-          "name": "contributor",
-          "type": "address"
-        }
-      ],
-      "name": "fund",
-      "outputs": [],
-      "payable": true,
-      "stateMutability": "payable",
-      "type": "function"
-    },
     {
       "constant": true,
       "inputs": [
@@ -72,6 +39,48 @@ var napoleonxGatewayAbi =
       "type": "function"
     },
     {
+      "constant": false,
+      "inputs": [
+        {
+          "name": "candidate",
+          "type": "address"
+        }
+      ],
+      "name": "revoke",
+      "outputs": [],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [
+        {
+          "name": "candidates",
+          "type": "address[50]"
+        }
+      ],
+      "name": "authorizeMany",
+      "outputs": [],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "owner",
+      "outputs": [
+        {
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
       "constant": true,
       "inputs": [
         {
@@ -79,11 +88,11 @@ var napoleonxGatewayAbi =
           "type": "address"
         }
       ],
-      "name": "contributions",
+      "name": "whitelist",
       "outputs": [
         {
           "name": "",
-          "type": "uint256"
+          "type": "bool"
         }
       ],
       "payable": false,
@@ -94,71 +103,37 @@ var napoleonxGatewayAbi =
       "constant": false,
       "inputs": [
         {
-          "name": "newOwner",
+          "name": "candidate",
           "type": "address"
         }
       ],
-      "name": "addOwner",
+      "name": "authorize",
       "outputs": [],
       "payable": false,
       "stateMutability": "nonpayable",
       "type": "function"
     },
     {
-      "constant": true,
-      "inputs": [],
-      "name": "whitelist",
-      "outputs": [
-        {
-          "name": "",
-          "type": "address"
-        }
-      ],
-      "payable": false,
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "constant": true,
-      "inputs": [],
-      "name": "vault",
-      "outputs": [
-        {
-          "name": "",
-          "type": "address"
-        }
-      ],
-      "payable": false,
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
+      "constant": false,
       "inputs": [
         {
-          "name": "_whitelist",
-          "type": "address"
-        },
-        {
-          "name": "_vault",
+          "name": "newOwner",
           "type": "address"
         }
       ],
+      "name": "transferOwnership",
+      "outputs": [],
       "payable": false,
       "stateMutability": "nonpayable",
-      "type": "constructor"
+      "type": "function"
     },
     {
       "anonymous": false,
       "inputs": [
         {
           "indexed": false,
-          "name": "contributor",
+          "name": "candidate",
           "type": "address"
-        },
-        {
-          "indexed": false,
-          "name": "amount",
-          "type": "uint256"
         },
         {
           "indexed": false,
@@ -166,53 +141,84 @@ var napoleonxGatewayAbi =
           "type": "uint256"
         }
       ],
-      "name": "NewContribution",
+      "name": "Authorized",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "name": "candidate",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "name": "timestamp",
+          "type": "uint256"
+        }
+      ],
+      "name": "Revoked",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "name": "previousOwner",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "name": "newOwner",
+          "type": "address"
+        }
+      ],
+      "name": "OwnershipTransferred",
       "type": "event"
     }
-  ];
+];
 
-var napoleonXGatewayAddress ="0x09555d2ffc533fbec4e086c1f791b75296aa0973";
+var napoleonXWhitelistAddress ="0x45f0f40297df736fe33efbf703d6ff287cb29cf7";
 
 web3.personal.unlockAccount(account, unlockingPassword,"0x3e8");
 
 
-var napoleonXGatewayContract = web3.eth.contract(napoleonxGatewayAbi);
-var napoleonXGateway = napoleonXGatewayContract.at(napoleonXGatewayAddress);
+var napoleonXWhitelistContract = web3.eth.contract(napoleonxWhitelistAbi);
+var napoleonXWhitelist = napoleonXWhitelistContract.at(napoleonXWhitelistAddress);
 
 
 // Synchronous read
-var data = fs.readFileSync('./data/final_reconciliation.csv').toString().split('\n');
+var data = fs.readFileSync('./data/whitelisted.csv').toString().split('\n');
 
 
 // Looping and batch sending
 var whitelisted = [];
-var tokenAmount = [];
-var batchSize = 5;
+var batchSize = 50;
 var counter = 0;
-var napoleonXtokenPopulateDataEstimate;
+var napoleonXWhitelistPopulateDataEstimate;
 
-for (var i = 0; i < data.length; i++) {
-    var fields = data[i].split(',');
+for (var i = 1; i < data.length; i++) {
+  var fields = data[i].split(',');
 	var myAmount = parseInt(fields[1]);
 	var myAddress = fields[0];
-	tokenAmount.push(myAmount);
 	whitelisted.push(myAddress);
 	console.log(myAddress);
-	console.log(myAmount);
 	counter = counter + 1;
 	if (counter  == batchSize){
-		console.log("Handling@Whitelisted@"+whitelisted.length+"@tokenAmount@"+whitelisted.length);
+		console.log("Handling@Whitelisted@"+whitelisted.length);
 		console.log("Sending populating batch");
 		console.log("Batch gas estimation");
-		var napoleonXtokenPopulateData=napoleonXToken.populateWhitelisted.getData(whitelisted,tokenAmount);
-		var napoleonXtokenPopulateDataEstimate = web3.eth.estimateGas({from : account, to : napoleonXTokenAddress, data: napoleonXtokenPopulateData});
-		console.log(napoleonXtokenPopulateDataEstimate);
-		var napoleonXtokenPopulateDataEstimate = Math.min(web3.eth.getBlock("latest").gasLimit,napoleonXtokenPopulateDataEstimate+10000);
-		console.log(napoleonXtokenPopulateDataEstimate);
+		var napoleonXWhitelistPopulateData = napoleonXWhitelist.authorizeMany.getData(whitelisted);
+		var napoleonXWhitelistPopulateDataEstimate = web3.eth.estimateGas({from : account, to : napoleonXWhitelistAddress, data: napoleonXWhitelistPopulateData});
+		//console.log(napoleonXWhitelistPopulateData);
+		var napoleonXWhitelistPopulateDataEstimate = Math.min(web3.eth.getBlock("latest").gasLimit,napoleonXWhitelistPopulateDataEstimate+10000);
+		console.log(napoleonXWhitelistPopulateDataEstimate);
 
-		var populateWhiteList_transaction = napoleonXToken.populateWhitelisted.sendTransaction(whitelisted,tokenAmount, {
+		var populateWhiteList_transaction = napoleonXWhitelist.authorizeMany.sendTransaction(whitelisted, {
 				from: account,
-				gas: napoleonXtokenPopulateDataEstimate
+				gas: napoleonXWhitelistPopulateDataEstimate
 		});
 		console.log("@bcTransaction@"+populateWhiteList_transaction);
 		var MyPopulateWhiteListReceipt = web3.eth.getTransactionReceiptMined(populateWhiteList_transaction);
@@ -223,24 +229,18 @@ for (var i = 0; i < data.length; i++) {
 		counter = 0;
 	}
 }
-
-console.log("Handling@Whitelisted@"+whitelisted.length+"@tokenAmount@"+whitelisted.length);
+console.log("Handling@Whitelisted@"+whitelisted.length);
 console.log("Sending populating batch");
-var napoleonXtokenPopulateData=napoleonXToken.populateWhitelisted.getData(whitelisted,tokenAmount);
-var napoleonXtokenPopulateDataEstimate = web3.eth.estimateGas({from : account, to : napoleonXTokenAddress, data: napoleonXtokenPopulateData});
-console.log(napoleonXtokenPopulateDataEstimate);
-var napoleonXtokenPopulateDataEstimate = Math.min(web3.eth.getBlock("latest").gasLimit,napoleonXtokenPopulateDataEstimate+10000);
-console.log(napoleonXtokenPopulateDataEstimate);
+console.log("Batch gas estimation");
+var napoleonXWhitelistPopulateData = napoleonXWhitelist.authorizeMany.getData(whitelisted);
+var napoleonXWhitelistPopulateDataEstimate = web3.eth.estimateGas({from : account, to : napoleonXWhitelistAddress, data: napoleonXWhitelistPopulateData});
+//console.log(napoleonXWhitelistPopulateData);
+var napoleonXWhitelistPopulateDataEstimate = Math.min(web3.eth.getBlock("latest").gasLimit,napoleonXWhitelistPopulateDataEstimate+10000);
+console.log(napoleonXWhitelistPopulateDataEstimate);
 
-var populateWhiteList_transaction = napoleonXToken.populateWhitelisted.sendTransaction(whitelisted,tokenAmount, {
-	from: account,
-	gas: napoleonXtokenPopulateDataEstimate
+var populateWhiteList_transaction = napoleonXWhitelist.authorizeMany.sendTransaction(whitelisted, {
+    from: account,
+    gas: napoleonXWhitelistPopulateDataEstimate
 });
 console.log("@bcTransaction@"+populateWhiteList_transaction);
 var MyPopulateWhiteListReceipt = web3.eth.getTransactionReceiptMined(populateWhiteList_transaction);
-
-tokenAmount = [];
-whitelisted = [];
-counter = 0;
-
-console.log(napoleonXToken.balanceOf(account));
