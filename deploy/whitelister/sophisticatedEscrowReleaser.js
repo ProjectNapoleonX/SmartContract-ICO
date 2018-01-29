@@ -408,8 +408,8 @@ web3.personal.unlockAccount(account, unlockingPassword,"0x3e8");
 //  logs.forEach(log => console.log(log.args["contributor"]+","+log.args["timestamp"] ))
 //});
 
-var toRetry =
-["0xee291db1ba3da1937d5d99e022d24f29ffb614a8",
+var toRetry = [
+"0xee291db1ba3da1937d5d99e022d24f29ffb614a8",
 "0x88818222b8b0979c68f05ce9c8d446fc270cbab2",
 "0x0fd3e2c50ee69fd59e3ad545fc07587adb6fb39e",
 "0xf0f7050dfb0f708b4fb5459899d1c5b542201fc5",
@@ -508,75 +508,128 @@ var toRetry =
 "0x09ee14394b99c51266e0ac60b99838ef051da51c",
 "0x7ed1e469fcb3ee19c0366d829e291451be638e59",
 "0x3d31dc8f2e563f30da4b33af88a5a1e42d1b1c0a",
-"0xdcea50df185a523479cb2421ac8b9ce43466dfb8",
-"0xb9d93da154352226e3c4fb60be5456787a3caeb9",
-"0x5649bf611b3e84dfcece4c421a9d77cdc804f808",
-"0x96f141f80795a63b4c265384f3a7ccbf0c1aa28d",
-"0xbe84060137e51ae995f8f6acae76a60d4e1efe28",
-"0xb6da110659ef762a381cf2d6f601eb19b5f5d51e",
 "0x32ad10e527a7653d1f4289eea2023cd2dfc5b701",
-"0x8922712f0d949ab20be10654aa437c725b4a2192",
-"0x14e928796568a0c3479de7a0c28fa50addc38b84",
-"0x6eb980a3f394816516b962c1e864a0a97adc0176",
-"0x4b6e8d9198db5f19d6eab1e8d6665d0211ed9472",
 "0xccc0739a3aaf1e770523d362818e120031929e04",
-"0x2618f4c64805526a3092d41f25597ccfe4dd8216",
-"0x31b8d0b970fb34feb2fde0bbe91b6b4794bba571",
 "0xdb33420e90618fa54b9547871c90dc01159d301e",
-"0x71539c53376a0814ddbea67b0847056f0e1c6665",
-"0xdf8ee10dd50b452b730c0d28cd943be138eeb429",
-"0x69136c87295bdf2dc892a1b03d26d84bfa210c72",
 "0xfb0a92aebe8da924044ec9fe12aab745a00fb4a5",
 "0xfb0a92aebe8da924044ec9fe12aab745a00fb4a5",
 "0x0681d8db095565fe8a346fa0277bffde9c0edbbf",
-"0xf4ad6ed5f256a681f486255c54252c1ea2b91744",
-"0x5e6aa94552ba5a6b4188b70118cc93f88e9faa92",
-"0x2c937f1eb79d98e2530be5556e47de13ea2cde72",
-"0xb436d1f446de4d3c46e7aef00d4d389d9b4c5fbf",
-"0xfe765dec5296857da70126d8ee177dce7104799f",
 "0x4082a3eac61bcc973428aad6a158d67f1b4467c9",
-"0xf67f2172a408b4f99d2649a5aa0a3207be72147b",
 "0x36e7c97a374d0aef93ce82ff4947bb68f844d391",
-"0x9d06cf06a03c2ec670a38417dc5042b3b23d9721",
-"0xb890791c2f54e123b2f07e576c5992c74397dee4",
-"0x8fb6827d9d6ce9e23d40da58d50a9073a3a78b07",
-"0xe4ae629d3b590b6fbf65f902b2db16128c359978",
-"0xd224c473abb9d9d66909e617a3abe2ab369a6e4d",
-"0x35a68c755be5331bd5578902355e33ce47277750",
-"0xcdc9a1585ff2254a6da7ebb28fabf9737ed11707",
-"0xf930a6eb06423ec4d5131bee8c62c3891db6ff00",
-"0xf6ab1e48f39ec9b5cffc18a4f7a4a4ba11f8e9e8",
 "0x8f4d34c1d923bac701cf21be62effd09fdaeffbc",
 "0xf94d34e4c368225f6efa38329f8c3792608b4fef",
-"0x148fdcb5ffb3fb3626511a187dbd94282de19327",
-"0xc2ef1dd3157c96af2ccf33081422d3fb399bcb8e",
-"0x7589324ea45dea5f78ee0f2a839382e4e8621917",
-"0x0d0a1d0aa6d14a9b73436718fc5d27eb5a48bf2d",
-"0xb53864f310db3113d4e94f9361e4072fbcec161f",
-"0x564286362092d8e7936f0549571a803b203aaced"];
+"0x564286362092d8e7936f0549571a803b203aaced",
+"0x49f0538b70f8cafcb3ee558a203fe261ce52194d",
+"0x8a070d86b13fa86f976dc18776f66b5f5b9a44a2",
+"0xfbb1b73c4f0bda4f67dca266ce6ef42f520fbb98",
+"0x5f5fe66e5a9e37f91a6e7967b8c1540c7694f330",
+"0xfbb1b73c4f0bda4f67dca266ce6ef42f520fbb98",
+"0xb561bf2fb81dce67a28e6f6d63c247c8e384f852",
+"0xb561bf2fb81dce67a28e6f6d63c247c8e384f852",
+"0xb561bf2fb81dce67a28e6f6d63c247c8e384f852",
+"0xaf47a2b4ee451f898c9bfbaffd572182057f80fa",
+"0xeac047a5e881d2d8f7191e3864c5772d446ad484",
+"0x1a1960d333c4d3ca8bbb559c01a0464b5d0192d5",
+"0xf7a34deb812c83f07ae39ed4672230e5a88c0dcc",
+"0x0681d8db095565fe8a346fa0277bffde9c0edbbf",
+"0xa0bb4ba19f578a63fa3f67adaf7bbca15ccadc45",
+"0x35304d6c4f90f6f76fadd091fcd65582780496a7",
+"0xf61c684e0fbb2695c6bc36ed5a3d6a78f58acb26",
+"0x2df4a018ca73e3aa299ec9b810429ca874884338",
+"0x5588dd19ee85a82c28f41a0ec0e203c3d352497c",
+"0x6cd689d1402a6e72d91e6e164d01fea2639c239c",
+"0x49f0538b70f8cafcb3ee558a203fe261ce52194d",
+"0xcadd93adbbbe5ca73722fb230299e8f5bf5fbe2b",
+"0x000d4b94db7dd666b8a6bc445798b211a042abc8",
+"0xd1c05d75c43e55511e73e3c6d4cef34b92d11cd9",
+"0x4605f72230496339feb2740e8533fd1fc296daca",
+"0xd58b7fe43b74af56fb269c2fca8a98184ea92554",
+"0xfe2401eb7e5641c18dadf10670caf26d302d9dc5",
+"0x7ed1e469fcb3ee19c0366d829e291451be638e59",
+"0x1ce953f272f37a9ab19e2db165e8d909ea07cfef",
+"0xfc5b9f06bf4395d3a29f1d2f0d3c2561e9fadcee",
+"0x2b5634c42055806a59e9107ed44d43c426e58258",
+"0xa14f119914ea8a92763ffde9800c80c644f70ff2",
+"0x9d39306481c3280870b20fefb213df2c3e8962f7",
+"0x06992bd3ca6fcbba31bc30a185038fc025941fc3",
+"0x2c547db04201171264df63d6ba50f7cfdb28e813",
+"0x05ad17ec2128825bd855e78cdc0bde6e08c6aceb",
+"0xa887e51580c06edf6a02f1c0b0b293b5a0497ff2",
+"0x0ed1ca97680ce7e3f3653343a8c8f1f47b8af236",
+"0x15ec8ee81212810bfe649ce9ad4ea0aaade7a30d",
+"0x03bde8b62cf6231e775cb003054b5f5dd24adccb",
+"0xd6ac56fa18b17ada260a1601a19b56f21fcbe10d",
+"0x0eabbdcaf65096e0746688ab41c875456432e66d",
+"0x3bcf9f64212d4db94b7b7beb1917955ec839c7c4",
+"0x429aa1db58254d1b7eb865cde2bad3379fe449e5",
+"0x2bec6ec3180a051278fb10465b1eae1433ceacaa",
+"0xa0873eae6618136f9d77a94a0990455b97778ec7",
+"0xc042139029ecfa96ba6796ce661c4665ff818dfe",
+"0x3ebaa0531e80538e15b268e59d01743ec11d5486",
+"0x959ce9cbc150f5f11f6cea133473ab7172312f6b",
+"0x870243127e57946ad832f80868fe6ec249bf5c6f",
+"0xb1e90c9ae0f988f5c6cfce169936efe2403134e6",
+"0xa9b24974ca0f8f6cd898ea496601b1972bdd3286",
+"0xcf46723a4944e518dc218f29b2ee5dcf11dd5c31",
+"0xefd62768c948f3842933c17dd6990aab07cf2a7a",
+"0x8a9f9c8a355fd0f0ea9edf03da361b3589c67072",
+"0xcb1c682a5995bfb2358e34fb68fc19cf4c88c6e2",
+"0xbfd077021ac06022524c79bab0621d3d4ca783f3",
+"0x4bfefc75b14c5e70739be166e1ae7bbb85814ff2",
+"0x12571c687b8175963a8bf14d1ce245a292e4cf42",
+"0x1ddf2987fab4e51f80c1519154b4139fa1dd3a32",
+"0x7aaa73a223661bb94edd6c18aa1d984644f3a8ef",
+"0x1bcfb5996d788e009e7a858a3058bde7785e91c5",
+"0x922f42570a5d2ea6d0c66fa294ed76d24f336fad",
+"0x1b203570a0ff0090d2eae6a3747e3675fc015f74",
+"0xadf5e9251464917134f24e110ad6f402b0f79a64",
+"0xec84e65d22b058d8a3922dc9dedf3a0c0d6442b5",
+"0x2463c376c730a2658cbdf7fca5d1b788bbd9d3c7",
+"0x51f10ecc90fcd851f1e798f4347a92ae609ca041",
+"0xe21c7576b37e49c5a271228be5d2f6986db37b02",
+"0x338aa15a3edfed09745a2ff9c13cf7a3c30337cd",
+"0x86b42111db0c8074f361f6c28895fa1b920f6d47",
+"0x00734fc798fbc39d7c9bad21ff0e1bac6410ec7c",
+"0x0567b48aead04a9edcee9ec00558aa7e2ef94664",
+"0x76ff715e055b36b37e2a24d9ccfb6173d62fb3c4",
+"0x4fa5932a6f78c339baf7e4faa2e4c66268233b70",
+"0x3bc7c4dbb7781e56b244dffc62d2a2ad14b09428",
+"0xae02b05e323c3fe738162b4961243a9dcfcf45d2"
+];
 
-for (var i = 1; i < toRetry.length; i++) {
+
+for (var i = 0; i < toRetry.length; i++) {
   var fields = toRetry[i].split(',');
 	var myAddress = fields[0];
   if (napoleonXWhitelist.isWhitelisted(myAddress)){
-    //console.log("Retrying");
-    //console.log(myAddress);
-    //var napoleonXEscrowPopulateData = napoleonxEscrow.retry.getData(myAddress);
-    //var napoleonXEscrowPopulateDataEstimate = web3.eth.estimateGas({from : account, to : napoleonXEscrowAddress, data: napoleonXEscrowPopulateData});
-    //console.log(napoleonXWhitelistPopulateData);
-    //var napoleonXEscrowPopulateDataEstimate = Math.min(web3.eth.getBlock("latest").gasLimit,napoleonXEscrowPopulateDataEstimate);
-    //console.log(napoleonXEscrowPopulateDataEstimate);
-    //var unstuckEscrow_transaction = napoleonxEscrow.retry.sendTransaction(myAddress, {
-    //      from: account,
-    //      gas: 140245,
-    //      //gas: napoleonXEscrowPopulateDataEstimate,
-    //      gasPrice: 90000000000
-    //});
-    //console.log("@bcTransaction@"+unstuckEscrow_transaction);
-    //var MyPopulateWhiteListReceipt = web3.eth.getTransactionReceiptMined(unstuckEscrow_transaction);
-
+    var acctBal = web3.fromWei(napoleonxEscrow.contributions(myAddress), "ether");
+    var acctVal =parseFloat(acctBal.toString());
+    if (acctVal > 0 ){
+      console.log("@@@@@@@@@@@@Retrying");
+      console.log(myAddress);
+      console.log("Contribution");
+      console.log(acctVal);
+      //var napoleonXEscrowPopulateData = napoleonxEscrow.retry.getData(myAddress);
+      //var napoleonXEscrowPopulateDataEstimate = web3.eth.estimateGas({from : account, to : napoleonXEscrowAddress, data: napoleonXEscrowPopulateData});
+      //console.log(napoleonXWhitelistPopulateData);
+      //var napoleonXEscrowPopulateDataEstimate = Math.min(web3.eth.getBlock("latest").gasLimit,napoleonXEscrowPopulateDataEstimate);
+      //console.log(napoleonXEscrowPopulateDataEstimate);
+      //var unstuckEscrow_transaction = napoleonxEscrow.retry.sendTransaction(myAddress, {
+      //      from: account,
+      //      gas: 140245,
+      //      //gas: napoleonXEscrowPopulateDataEstimate,
+      //      gasPrice: 90000000000
+      //});
+      //console.log("@bcTransaction@"+unstuckEscrow_transaction);
+      //var MyPopulateWhiteListReceipt = web3.eth.getTransactionReceiptMined(unstuckEscrow_transaction);
+    } else {
+      console.log("Not Retrying");
+      console.log(myAddress);
+      console.log("Contribution");
+      console.log(acctVal);
+    }
   } else {
-    console.log(myAddress);
+    //console.log(myAddress);
   }
 
 
